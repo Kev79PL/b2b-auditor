@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audytor Konkurencji B2B</title>
+  <style>
+    :root {
+      --cream: #FFFFFF;
+      --petal: #EEF2F9;
+      --blush: #C5D3E8;
+      --rose: #2563EB;
+      --deep-rose: #1B3A6B;
+      --text-dark: #1A2540;
+      --text-mid: #3B5080;
+      --border: #D0DAED;
+
+      --good-bg: #EBF7F0; --good-col: #2D7D52;
+      --warn-bg: #FEF7E6; --warn-col: #B07800;
+      --bad-bg:  #FDEAEA; --bad-col:  #B03030;
+
+      --green: #2D7D52;
+      --deep-green: #1A5C3A;
+      --mid-green: #4CAF7D;
+      --border-green: #B6E4CC;
+
+      --gold-bg: #FFFBEA; --gold-col: #92620A; --gold-border: #F0D080;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+    /* Header */
+    header { background: linear-gradient(135deg, var(--deep-rose), var(--rose)); color: white; padding: 2rem 1rem; text-align: center; }
+    header h1 { font-family: Georgia, serif; font-style: italic; font-size: 2.2rem; letter-spacing: .02em; margin-bottom: .4rem; }
+    header p { font-size: .95rem; opacity: .85; }
+
+    .container { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    /* Search card */
+    .search-card { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 2rem; box-shadow: 0 2px 16px rgba(37,99,235,.08); margin-bottom: 2rem; }
+    .search-card h2 { font-size: 1rem; font-weight: 700; color: var(--deep-rose); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: .05em; }
+
+    .input-row { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+    .input-icon { font-size: 1.3rem; width: 32px; text-align: center; flex-shrink: 0; }
+    .input-row label { font-size: .85rem; font-weight: 700; color: var(--text-mid); width: 160px; flex-shrink: 0; line-height: 1.3; }
+    .input-row input {
+      flex: 1; padding: .65rem .9rem; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: .95rem; color: var(--text-dark); background: var(--cream); outline: none; transition: border-color .2s;
+    }
+    .input-row input:focus { border-color: var(--rose); }
+    .input-row input::placeholder { color: #bbb; font-size: .88rem; }
+
+    .input-row.mine-row input:focus { border-color: var(--mid-green); }
+    .input-row.mine-row label { color: var(--green); }
+
+    .btn-analyze {
+      width: 100%; padding: .85rem; margin-top: .5rem;
+      background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+      color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: opacity .2s, transform .1s; letter-spacing: .01em;
+    }
+    .btn-analyze:hover { opacity: .9; }
+    .btn-analyze:active { transform: scale(.98); }
+    .btn-analyze:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* Hero tagline */
+    .hero-tagline {
+      text-align: center;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--deep-rose);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    /* Feature icons */
+    .features-row {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+    @media (max-width: 560px) {
+      .features-row { flex-direction: column; align-items: center; gap: 1rem; }
+    }
+    .feature-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      flex: 1;
+      max-width: 160px;
+      text-align: center;
+    }
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: var(--petal);
+      border: 1.5px solid var(--blush);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.45rem;
+    }
+    .feature-label {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-mid);
+      line-height: 1.35;
+    }
+
+    /* Trust badges under button */
+    .trust-badges {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      margin-top: .75rem;
+      font-size: .8rem;
+      color: var(--text-mid);
+      flex-wrap: wrap;
+    }
+    .trust-badges span { font-weight: 600; }
+
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 3rem 1rem; color: var(--text-mid); }
+    .loading.visible { display: block; }
+    .spinner { width: 48px; height: 48px; border: 4px solid var(--blush); border-top-color: var(--rose); border-radius: 50%; animation: spin .9s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { font-size: .95rem; margin-bottom: .35rem; }
+    .loading small { font-size: .82rem; opacity: .7; }
+
+    /* Error */
+    .error-box { display: none; background: var(--bad-bg); border: 1px solid #f0b0b0; border-radius: 10px; padding: 1rem 1.25rem; color: var(--bad-col); margin-bottom: 1.5rem; font-size: .95rem; }
+    .error-box.visible { display: block; }
+
+    /* Report */
+    .report { display: none; }
+    .report.visible { display: block; }
+
+    /* Two-column layout */
+    .cols-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 660px) {
+      .cols-wrap { grid-template-columns: 1fr; }
+    }
+
+    .col {
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .col.col-mine { border-color: var(--border-green); }
+
+    .col-head {
+      padding: 1rem 1.25rem;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .col-head-comp { background: linear-gradient(135deg, var(--deep-rose), var(--rose)); }
+    .col-head-mine { background: linear-gradient(135deg, var(--deep-green), var(--mid-green)); }
+
+    .col-body { padding: 1.25rem; }
+
+    .col-brand {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--deep-rose);
+      margin-bottom: 1rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .col-mine .col-brand { color: var(--deep-green); border-color: var(--border-green); }
+
+    /* Scores inside column */
+    .col-scores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      margin-bottom: 1.1rem;
+    }
+    .score-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .75rem .4rem;
+      text-align: center;
+    }
+    .col-mine .score-card { border-color: var(--border-green); background: #F4FCF7; }
+    .score-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mid); margin-bottom: .5rem; }
+    .ring-wrap { position: relative; width: 62px; height: 62px; margin: 0 auto .4rem; }
+    .ring-wrap svg { transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: var(--petal); stroke-width: 6; }
+    .ring-fg { fill: none; stroke-width: 6; stroke-linecap: round; }
+    .ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; font-weight: 700; }
+
+    /* Section title inside column */
+    .col-section-title {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--deep-rose); margin-bottom: .5rem; margin-top: .9rem;
+    }
+    .col-mine .col-section-title { color: var(--deep-green); }
+
+    /* Keywords */
+    .kw-group { margin-bottom: .6rem; }
+    .kw-group-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+    .kw-group.primary .kw-group-label { color: var(--deep-rose); }
+    .kw-group.secondary .kw-group-label { color: var(--rose); }
+    .kw-group.missing .kw-group-label { color: var(--warn-col); }
+    .col-mine .kw-group.primary .kw-group-label { color: var(--deep-green); }
+    .col-mine .kw-group.secondary .kw-group-label { color: var(--mid-green); }
+    .kw-pills { display: flex; flex-wrap: wrap; gap: .3rem; }
+    .pill { display: inline-block; padding: .22rem .6rem; border-radius: 20px; font-size: .76rem; font-weight: 500; }
+    .kw-group.primary .pill { background: var(--petal); color: var(--deep-rose); border: 1px solid var(--blush); }
+    .kw-group.secondary .pill { background: #EEF4FF; color: var(--rose); border: 1px solid #C5D3E8; }
+    .kw-group.missing .pill { background: var(--warn-bg); color: var(--warn-col); border: 1px solid #f0d080; }
+    .kw-group.missing .pill::before { content: "+ "; }
+    .col-mine .kw-group.primary .pill { background: #EBF7F0; color: var(--deep-green); border-color: var(--border-green); }
+    .col-mine .kw-group.secondary .pill { background: #F4FCF7; color: var(--mid-green); border-color: var(--border-green); }
+
+    /* Findings inside column */
+    .finding-item {
+      display: flex; gap: .5rem; align-items: flex-start;
+      font-size: .83rem; line-height: 1.45; margin-bottom: .4rem;
+    }
+    .finding-dot {
+      flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%;
+      margin-top: .3rem;
+    }
+    .finding-dot.good { background: var(--good-col); }
+    .finding-dot.warn { background: var(--warn-col); }
+    .finding-dot.bad  { background: var(--bad-col); }
+    .finding-group { margin-bottom: .5rem; }
+    .finding-group-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+    .finding-group.good .finding-group-label { color: var(--good-col); }
+    .finding-group.warn .finding-group-label { color: var(--warn-col); }
+    .finding-group.bad  .finding-group-label { color: var(--bad-col); }
+
+    /* Comparison section */
+    .comparison-section { margin-top: .5rem; }
+
+    .comp-title {
+      font-size: .85rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text-mid); margin-bottom: 1rem; text-align: center;
+    }
+
+    .comp-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 560px) {
+      .comp-row { grid-template-columns: 1fr; }
+    }
+
+    .comp-box {
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+    }
+    .comp-box h3 {
+      font-size: .88rem; font-weight: 700; margin-bottom: .85rem;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .comp-box ul { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+    .comp-box ul li { font-size: .88rem; line-height: 1.5; display: flex; gap: .55rem; align-items: flex-start; }
+    .comp-box ul li::before { flex-shrink: 0; margin-top: .18rem; font-size: .9rem; }
+
+    .comp-losing { background: var(--bad-bg); border: 1.5px solid #f0b0b0; }
+    .comp-losing h3 { color: var(--bad-col); }
+    .comp-losing ul li::before { content: "✗"; color: var(--bad-col); }
+
+    .comp-winning { background: var(--good-bg); border: 1.5px solid var(--border-green); }
+    .comp-winning h3 { color: var(--good-col); }
+    .comp-winning ul li::before { content: "✓"; color: var(--good-col); }
+
+    .comp-actions-box {
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold-border);
+      border-radius: 14px;
+      padding: 1.4rem 1.6rem;
+    }
+    .comp-actions-box h3 {
+      font-size: .95rem; font-weight: 700; color: var(--gold-col);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem;
+    }
+    .comp-actions-box ol { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+    .comp-actions-box ol li {
+      display: flex; gap: .8rem; align-items: flex-start;
+      font-size: .92rem; line-height: 1.5;
+    }
+    .action-num {
+      flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-col), #D4A017);
+      color: white; font-size: .78rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* CTA section */
+    .cta-section {
+      display: none;
+      background: linear-gradient(135deg, var(--petal), var(--cream));
+      border: 1.5px solid var(--blush);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      margin-top: 2rem;
+      box-shadow: 0 2px 16px rgba(37,99,235,.08);
+    }
+    .cta-section.visible { display: block; }
+    .cta-section h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 1.6rem;
+      color: var(--deep-rose);
+      margin-bottom: 1rem;
+    }
+    .cta-section p {
+      color: var(--text-mid);
+      font-size: .97rem;
+      line-height: 1.65;
+      margin-bottom: 1.75rem;
+      max-width: 580px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-cta {
+      display: inline-block;
+      padding: .9rem 2.25rem;
+      background: linear-gradient(135deg, var(--deep-rose), var(--rose));
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      transition: opacity .2s, transform .1s;
+      letter-spacing: .01em;
+    }
+    .btn-cta:hover { opacity: .9; }
+    .btn-cta:active { transform: scale(.98); }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: .8rem;
+      color: #999;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+    }
+    footer a { color: #999; text-decoration: underline; }
+    footer a:hover { color: var(--text-mid); }
+  </style>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KDRGXD');</script>
+  <!-- End Google Tag Manager -->
+  <!-- Meta Pixel Code -->
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '860482372233862');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=860482372233862&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KDRGXD"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <header>
+    <h1>Audytor Konkurencji B2B</h1>
+    <p>Sprawdź co robi Twoja konkurencja w internecie — i dowiedz się co robić dalej</p>
+  </header>
+
+  <div class="container">
+    <p class="hero-tagline">Błyskawiczna analiza konkurencji dla firm. SEO, oferta, widoczność online — wszystko w jednym raporcie.</p>
+
+    <div class="features-row">
+      <div class="feature-item">
+        <div class="feature-icon">📈</div>
+        <div class="feature-label">SEO &amp; widoczność w Google</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">💎</div>
+        <div class="feature-label">Oferta i cennik</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔎</div>
+        <div class="feature-label">Mocne i słabe strony</div>
+      </div>
+    </div>
+
+    <div class="search-card">
+      <h2>Podaj adresy stron do porównania</h2>
+
+      <div class="input-row">
+        <span class="input-icon">🔍</span>
+        <label for="inputCompetitor">Strona<br>konkurenta</label>
+        <input id="inputCompetitor" type="text" placeholder="np. https://konkurencja.pl" />
+      </div>
+      <div class="input-row mine-row">
+        <span class="input-icon">🌿</span>
+        <label for="inputMine">Strona mojej firmy</label>
+        <input id="inputMine" type="text" placeholder="np. https://mojafirma.pl" />
+      </div>
+
+      <button class="btn-analyze" id="analyzeBtn" onclick="fbq('track','ViewContent',{content_name:'Darmowy audyt'});startAnalysis()">Analizuj konkurencję</button>
+      <div class="trust-badges">
+        <span>✓ Bezpłatnie</span>
+        <span>✓ Bez rejestracji</span>
+        <span>✓ Wynik w 60 sekund</span>
+      </div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Analizuję obie strony i przygotowuję porównanie&hellip;</p>
+      <small>Może potrwać do 2 minut</small>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+    <div class="report" id="report"></div>
+
+    <div class="cta-section" id="ctaSection">
+      <h2>Potrzebujesz profesjonalnego audytu?</h2>
+      <p>Przeanalizujemy Twoją stronę i social media (Facebook, Instagram) oraz do 3 stron konkurencji. Dostaniesz szczegółowy raport z planem działania w ciągu 48h.</p>
+      <a class="btn-cta" href="/zamow">Zamów audyt za 99 zł &rarr;</a>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 SPACE PR &nbsp;|&nbsp;
+    <a href="https://spacepr.pl/polityka-prywatnosci/" target="_blank" rel="noopener">Polityka prywatności</a>
+    &nbsp;|&nbsp; Dane przetwarzane zgodnie z RODO
+  </footer>
+
+  <script>
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') startAnalysis();
+    });
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function startAnalysis() {
+      const competitor = document.getElementById('inputCompetitor').value.trim();
+      const mine = document.getElementById('inputMine').value.trim();
+      if (!competitor) { showError('Podaj adres strony konkurenta.'); return; }
+      if (!mine) { showError('Podaj adres strony swojej firmy.'); return; }
+
+      setLoading(true); hideError(); hideReport();
+
+      fetch('/api/save-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ konkurent: competitor, moja_strona: mine })
+      }).catch(() => {});
+
+      try {
+        const res = await fetch('/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ competitor, mine })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) showError(data.error || 'Nieznany błąd serwera.');
+        else renderReport(data);
+      } catch(e) {
+        showError('Nie można połączyć się z serwerem.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function setLoading(on) {
+      document.getElementById('loading').classList.toggle('visible', on);
+      document.getElementById('analyzeBtn').disabled = on;
+    }
+    function showError(msg) {
+      const b = document.getElementById('errorBox');
+      b.textContent = msg; b.classList.add('visible');
+    }
+    function hideError() { document.getElementById('errorBox').classList.remove('visible'); }
+    function hideReport() {
+      document.getElementById('report').classList.remove('visible');
+      document.getElementById('ctaSection').classList.remove('visible');
+    }
+
+    function scoreColor(n) {
+      return n >= 70 ? '#2D7D52' : n >= 40 ? '#B07800' : '#B03030';
+    }
+
+    function ringHTML(score, label) {
+      const r = 27, circ = 2 * Math.PI * r;
+      const offset = circ * (1 - score / 100);
+      const color = scoreColor(score);
+      return `<div class="score-card">
+        <div class="score-label">${esc(label)}</div>
+        <div class="ring-wrap">
+          <svg width="62" height="62" viewBox="0 0 62 62">
+            <circle class="ring-bg" cx="31" cy="31" r="${r}"/>
+            <circle class="ring-fg" cx="31" cy="31" r="${r}"
+              stroke="${color}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="ring-text" style="color:${color}">${score}</div>
+        </div>
+      </div>`;
+    }
+
+    function pillsHTML(list) {
+      return (list || []).map(k => `<span class="pill">${esc(k)}</span>`).join('');
+    }
+
+    function keywordsHTML(kw) {
+      if (!kw) return '';
+      let html = `<div class="col-section-title">Słowa kluczowe</div>`;
+      if (kw.primary?.length) html += `<div class="kw-group primary">
+        <div class="kw-group-label">Pozycjonuje się na</div>
+        <div class="kw-pills">${pillsHTML(kw.primary)}</div></div>`;
+      if (kw.secondary?.length) html += `<div class="kw-group secondary">
+        <div class="kw-group-label">Dodatkowe frazy</div>
+        <div class="kw-pills">${pillsHTML(kw.secondary)}</div></div>`;
+      if (kw.missing?.length) html += `<div class="kw-group missing">
+        <div class="kw-group-label">Brakuje</div>
+        <div class="kw-pills">${pillsHTML(kw.missing)}</div></div>`;
+      return html;
+    }
+
+    function findingItems(list, dotCls) {
+      return (list || []).map(i =>
+        `<div class="finding-item"><div class="finding-dot ${dotCls}"></div><span>${esc(i)}</span></div>`
+      ).join('');
+    }
+
+    function findingsHTML(f) {
+      if (!f) return '';
+      let html = `<div class="col-section-title">Ocena strony</div>`;
+      if (f.good?.length) html += `<div class="finding-group good">
+        <div class="finding-group-label">Mocne strony</div>${findingItems(f.good,'good')}</div>`;
+      if (f.warn?.length) html += `<div class="finding-group warn">
+        <div class="finding-group-label">Do poprawy</div>${findingItems(f.warn,'warn')}</div>`;
+      if (f.bad?.length) html += `<div class="finding-group bad">
+        <div class="finding-group-label">Słabości</div>${findingItems(f.bad,'bad')}</div>`;
+      return html;
+    }
+
+    function colHTML(d, type) {
+      const isComp = type === 'comp';
+      const headCls = isComp ? 'col-head-comp' : 'col-head-mine';
+      const icon = isComp ? '🔍' : '🌿';
+      const title = isComp ? 'Konkurencja' : 'Moja firma';
+      return `<div class="col col-${type}">
+        <div class="col-head ${headCls}">${icon} ${title}</div>
+        <div class="col-body">
+          <div class="col-brand">${esc(d.brand_name)}</div>
+          <div class="col-scores">
+            ${ringHTML(d.website_score, 'Strona www')}
+            ${ringHTML(d.seo_score, 'SEO')}
+            ${ringHTML(d.offers_score, 'Oferta')}
+          </div>
+          ${keywordsHTML(d.keywords)}
+          ${findingsHTML(d.findings)}
+        </div>
+      </div>`;
+    }
+
+    function comparisonHTML(c) {
+      if (!c) return '';
+      const losingItems = (c.losing || []).map(i =>
+        `<li>${esc(i)}</li>`).join('');
+      const winningItems = (c.winning || []).map(i =>
+        `<li>${esc(i)}</li>`).join('');
+      const actionItems = (c.actions || []).map((a, i) =>
+        `<li><span class="action-num">${i+1}</span><span>${esc(a)}</span></li>`).join('');
+
+      return `<div class="comparison-section">
+        <div class="comp-row">
+          <div class="comp-box comp-losing">
+            <h3>Gdzie przegrywasz z konkurencją</h3>
+            <ul>${losingItems}</ul>
+          </div>
+          <div class="comp-box comp-winning">
+            <h3>Gdzie wygrywasz</h3>
+            <ul>${winningItems}</ul>
+          </div>
+        </div>
+        ${actionItems ? `<div class="comp-actions-box">
+          <h3>⭐ Top 3 rzeczy do zrobienia w tym tygodniu</h3>
+          <ol>${actionItems}</ol>
+        </div>` : ''}
+      </div>`;
+    }
+
+    function renderReport(data) {
+      const html = `
+        <div class="cols-wrap">
+          ${colHTML(data.competitor, 'comp')}
+          ${colHTML(data.mine, 'mine')}
+        </div>
+        ${comparisonHTML(data.comparison)}
+      `;
+      const el = document.getElementById('report');
+      el.innerHTML = html;
+      el.classList.add('visible');
+      document.getElementById('ctaSection').classList.add('visible');
+    }
+
+    // Keep-alive: ping server co 5 min żeby Render free tier nie zasypiał
+    setInterval(function() { fetch('/ping').catch(function() {}); }, 5 * 60 * 1000);
+  </script>
+</body>
+</html>
