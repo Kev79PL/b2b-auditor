@@ -187,8 +187,9 @@
   .about-photo { position: relative; border-radius: 6px; overflow: hidden; aspect-ratio: 4/5;
     background: linear-gradient(160deg,#3a4a3a,#1c2a1c);
     transition: transform .4s, box-shadow .4s; transform-style: preserve-3d; will-change: transform; }
-  .about-photo::before { content: ""; position: absolute; inset: 0; opacity: 0.08; mix-blend-mode: overlay; pointer-events: none;
+  .about-photo::before { content: ""; position: absolute; inset: 0; opacity: 0.08; mix-blend-mode: overlay; pointer-events: none; z-index: 1;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>'); }
+  .about-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .about-photo:hover { box-shadow: 0 24px 48px rgba(0,0,0,0.25); }
   .about-photo .cap { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.55); color: #fff; padding: 12px 16px; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
   .about-badge { position: absolute; top: 22px; right: -20px; background: var(--accent); color: #fff; width: 108px; height: 108px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-family: 'Anton', sans-serif; font-size: 0.75rem; line-height: 1.2; letter-spacing: 0.5px; padding: 10px; box-shadow: 0 14px 30px rgba(229,53,12,0.4); animation: spinSlow 16s linear infinite; }
@@ -224,14 +225,16 @@
   .gallery-item:hover { transform: scale(1.04); box-shadow: 0 14px 30px rgba(0,0,0,0.3); filter: brightness(1.15); }
   .gallery-item:nth-child(3n) { background: linear-gradient(135deg, #3a2c1a, #201810); }
   .gallery-item:nth-child(5n) { grid-row: span 2; }
+  .gallery-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .gallery-item .ov { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,0.35); opacity: 0; transition: opacity .3s; color: #fff; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; }
   .gallery-item:hover .ov { opacity: 1; }
   .gallery-item .ov svg { width: 20px; height: 20px; }
 
   /* TESTIMONIALS */
-  .testimonial-box { max-width: 720px; margin: 0 auto; text-align: center; min-height: 150px; position: relative; }
+  .testimonial-box { max-width: 720px; margin: 0 auto; text-align: center; min-height: 200px; position: relative; }
   .testimonial { position: absolute; inset: 0; opacity: 0; transform: translateY(14px); transition: opacity .6s, transform .6s; pointer-events: none; }
   .testimonial.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .testimonial .stars { color: var(--accent); letter-spacing: 3px; font-size: 0.9rem; margin-bottom: 14px; }
   .testimonial p { font-size: 1.15rem; font-style: italic; color: #e8e8e8; margin-bottom: 22px; }
   .testimonial .author { color: var(--accent); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 0.85rem; }
   .dots { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
@@ -239,9 +242,10 @@
   .dots button.active { background: var(--accent); transform: scale(1.3); }
 
   /* PARTNERS */
-  .partners-row { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; }
-  .partner-logo { color: var(--dark); font-family: 'Anton', sans-serif; font-size: 1.3rem; letter-spacing: 1px; opacity: 0.7; border: 1px solid rgba(0,0,0,0.15); padding: 14px 26px; border-radius: 6px; transition: opacity .3s, transform .3s, border-color .3s, color .3s; }
-  .partner-logo:hover { opacity: 1; transform: translateY(-4px); border-color: var(--accent); color: var(--accent); }
+  .partners-row { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; justify-content: center; }
+  .partner-logo { display: flex; align-items: center; justify-content: center; background: var(--dark-2); opacity: 0.8; border: 1px solid rgba(255,255,255,0.08); padding: 18px 28px; border-radius: 8px; height: 76px; transition: opacity .3s, transform .3s, border-color .3s, box-shadow .3s; }
+  .partner-logo:hover { opacity: 1; transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 14px 28px rgba(0,0,0,0.2); }
+  .partner-logo img { max-height: 40px; max-width: 130px; width: auto; height: auto; object-fit: contain; }
 
   /* FINAL CTA */
   .final-cta { background: linear-gradient(120deg, var(--accent-dark), var(--accent)); color: #fff; text-align: center; padding: 100px 0; position: relative; overflow: hidden; }
@@ -401,6 +405,10 @@
       <a href="#kontakt" class="btn magnetic">Moja Historia</a>
     </div>
     <div class="about-photo reveal from-right">
+      <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/90a6fd82-d1ee-4552-858e-4965ef2d2fab-768x576.jpg"
+        srcset="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/90a6fd82-d1ee-4552-858e-4965ef2d2fab-300x225.jpg 300w, https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/90a6fd82-d1ee-4552-858e-4965ef2d2fab-768x576.jpg 768w, https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/90a6fd82-d1ee-4552-858e-4965ef2d2fab-1024x768.jpg 1024w"
+        sizes="(max-width: 980px) 90vw, 480px"
+        alt="Ewelina Zbijowska w górach" loading="lazy" decoding="async" onerror="this.remove()">
       <div class="about-badge"><span>11</span>LAT<br>DOŚWIADCZENIA</div>
       <div class="cap">Ewelina Zbijowska — Trener Personalny</div>
     </div>
@@ -511,14 +519,14 @@
       <p class="section-lead">Podczas moich przygód odwiedziłam masę wspaniałych miejsc — zajrzyj tutaj po inspirację na kolejną podróż.</p>
     </div>
     <div class="gallery-grid">
-      <div class="gallery-item reveal" style="--d:0s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.06s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.12s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.18s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.24s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.3s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.36s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
-      <div class="gallery-item reveal" style="--d:.42s"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:0s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/Web4-1024x683.png" alt="Ewelina Zbijowska w górach" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.06s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/7-1024x683.png" alt="Trening w terenie" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.12s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/6-1024x683.png" alt="Zawody biegowe w górach" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.18s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/Web2-1024x683.png" alt="Ewelina na szlaku" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.24s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/IMG_6072-3-1024x767.jpg" alt="Wyjazd treningowy w góry" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.3s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/IMG_4299-1-1024x768.jpeg" alt="Obóz biegowy" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.36s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/IMG_6848-1024x768.jpeg" alt="Bieganie górskie" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
+      <div class="gallery-item reveal" style="--d:.42s"><img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/e0468230-266d-493d-902e-1c22da5aca6d-1024x703.jpeg" alt="Przygoda w górach z Eweliną" loading="lazy" decoding="async" onerror="this.remove()"><div class="ov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Powiększ</div></div>
     </div>
   </div>
 </section>
@@ -528,23 +536,38 @@
     <div class="reveal section-head center">
       <h2 class="section-title">Polecają Mnie</h2>
       <span class="eyebrow"></span>
+      <p class="section-lead" style="margin-left:auto;margin-right:auto;text-align:center;">Na podstawie 33 opinii w Google</p>
     </div>
     <div class="testimonial-box reveal" id="testimonialBox">
       <div class="testimonial active">
-        <p>„Bardzo polecam Ewelinkę — trenerkę niesamowitą, z ogromną wiedzą i pasją do tego co robi. Dzięki niej osiągam swoje sportowe cele.”</p>
-        <div class="author">Zadowolona podopieczna</div>
+        <div class="stars">★★★★★</div>
+        <p>„Świetna trenerka, która zaraża miłością do sportu i sprawia, że ma się ochotę walczyć z własnymi słabościami i ograniczeniami. Dzięki niej naprawdę pokochałam bieganie po górach.”</p>
+        <div class="author">Anna Halama-Flisowska</div>
       </div>
       <div class="testimonial">
-        <p>„Treningi w górach z Eweliną to czysta przyjemność — każdy trening jest inny, a motywacja, którą przekazuje, zostaje na długo.”</p>
-        <div class="author">Uczestniczka obozów biegowych</div>
+        <div class="stars">★★★★★</div>
+        <p>„Serdecznie polecam trenerkę Ewelinę — ma ogromną wiedzę, potrafi wspaniale motywować do treningu i pracy nad sobą, a przy tym jest pełna entuzjazmu. Z nią trening nigdy nie jest nudny.”</p>
+        <div class="author">Magdalena Donocik</div>
       </div>
       <div class="testimonial">
-        <p>„Zaczynałam od zera, a dziś biegam ultra. Profesjonalne podejście, indywidualny plan i mnóstwo pozytywnej energii.”</p>
-        <div class="author">Podopieczna grupy Od Cieniasa do Ultrasa</div>
+        <div class="stars">★★★★★</div>
+        <p>„Jeśli chcesz poznać smak biegania po górach, polecam treningi z Eweliną. Sport to jej pasja i potrafi zarazić każdego. Swoją przygodę biegową rozpoczęłam właśnie z nią i w 100% nie żałuję.”</p>
+        <div class="author">Gabriela Zontek</div>
       </div>
       <div class="testimonial">
-        <p>„Dzięki Ewelinie pokochałam skitury. Cierpliwość, wiedza i bezpieczeństwo — wszystko, czego potrzebuje początkujący.”</p>
-        <div class="author">Uczestniczka treningów skiturowych</div>
+        <div class="stars">★★★★★</div>
+        <p>„Polecam Ewelinę do treningów na świeżym powietrzu i na siłowni. Od pół roku biegam z nią po górach w grupie od cieniasa do ultrasa i jest to bardzo wciągające. Motywuje, tłumaczy, angażuje się.”</p>
+        <div class="author">Katarzyna Broda</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p>„Fantastyczna trenerka z ogromnym doświadczeniem nie tylko biegowym. Wspierająca, motywująca oraz zawsze służąca pomocą. Jeśli chcesz poprawić formę — nie wahaj się.”</p>
+        <div class="author">Elżbieta Georgiew</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p>„Treningi z Eweliną to dawka solidnej porcji energii, wiedzy i dobrej zabawy. Świetnie zorganizowany czas treningu, profesjonalna opieka nad każdym uczestnikiem i mnóstwo ciekawych informacji.”</p>
+        <div class="author">Joanna Barcik</div>
       </div>
     </div>
     <div class="dots" id="testimonialDots" role="tablist" aria-label="Opinie">
@@ -552,6 +575,8 @@
       <button aria-label="Opinia 2" aria-selected="false"></button>
       <button aria-label="Opinia 3" aria-selected="false"></button>
       <button aria-label="Opinia 4" aria-selected="false"></button>
+      <button aria-label="Opinia 5" aria-selected="false"></button>
+      <button aria-label="Opinia 6" aria-selected="false"></button>
     </div>
     <div style="text-align:center;margin-top:34px;" class="reveal">
       <a href="#kontakt" class="btn magnetic">Zapisz się</a>
@@ -566,10 +591,24 @@
       <span class="eyebrow"></span>
     </div>
     <div class="partners-row">
-      <span class="partner-logo reveal" style="--d:0s">Himal Sport</span>
-      <span class="partner-logo reveal" style="--d:.1s">THIS1</span>
-      <span class="partner-logo reveal" style="--d:.2s">Skitourowe Bielsko</span>
-      <span class="partner-logo reveal" style="--d:.3s">YCZO</span>
+      <a class="partner-logo reveal" style="--d:0s" href="https://this-1.com/" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/Logo-THIS1-white-prawidlowe-nowe-300x170.png" srcset="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/Logo-THIS1-white-prawidlowe-nowe-300x170.png 300w, https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/Logo-THIS1-white-prawidlowe-nowe-768x436.png 768w" sizes="140px" alt="THIS1" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
+      <a class="partner-logo reveal" style="--d:.08s" href="https://himalsport.com.pl/" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/HIMAL_logo_new-300x69.png" srcset="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/HIMAL_logo_new-300x69.png 300w, https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/HIMAL_logo_new-768x176.png 768w" sizes="140px" alt="Himal Sport" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
+      <a class="partner-logo reveal" style="--d:.16s" href="https://naturalfuel.pl/" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/naturalfuelpl-logo-1582579979.png" alt="Natural Fuel" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
+      <a class="partner-logo reveal" style="--d:.24s" href="https://kubicasport.pl/" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/logo_kubicasport-removebg-preview-1-300x212.png" srcset="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/logo_kubicasport-removebg-preview-1-300x212.png 300w, https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/logo_kubicasport-removebg-preview-1.png 594w" sizes="120px" alt="Kubica Sport" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
+      <a class="partner-logo reveal" style="--d:.32s" href="https://www.facebook.com/skitourowebielsko" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/Skiturowebielsko-Logo-300x38.png" srcset="https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/Skiturowebielsko-Logo-300x38.png 300w, https://www.ewelinazbijowska.pl/wp-content/uploads/2024/02/Skiturowebielsko-Logo-768x97.png 768w" sizes="150px" alt="Skitourowe Bielsko" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
+      <a class="partner-logo reveal" style="--d:.4s" href="https://www.facebook.com/yoczostuptuty" target="_blank" rel="noopener">
+        <img src="https://www.ewelinazbijowska.pl/wp-content/uploads/2023/12/yczo.png" alt="YCZO" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </a>
     </div>
   </div>
 </section>
