@@ -283,10 +283,39 @@
             <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="binoculars" class="w-5 h-5"></i></div>
             <div>
               <h2 class="font-display text-lg font-semibold">Konkurencja <span class="text-slate-400 font-normal text-sm">(opcjonalnie)</span></h2>
-              <p class="text-sm text-slate-500">Wklej linki z Biblioteki Reklam Meta lub krótko opisz, co robi konkurencja.</p>
+              <p class="text-sm text-slate-500">Wklej linki do profili konkurentów — przy uruchomionym serwerze narzędzie przeanalizuje je automatycznie przez Apify.</p>
             </div>
           </div>
-          <textarea id="f-competition" name="competition" class="textarea" placeholder="np. https://www.facebook.com/ads/library/?q=konkurent — konkurent A promuje darmowy audyt, konkurent B stawia na webinary i reklamy wideo z prezesem…"></textarea>
+          <div class="grid gap-4">
+            <div>
+              <label class="label" for="f-website">Strona www konkurenta</label>
+              <input id="f-website" name="competitor_website" class="input" type="url" placeholder="https://konkurencja.pl" />
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="label" for="f-facebook">Profil Facebook</label>
+                <input id="f-facebook" name="competitor_facebook" class="input" type="url" placeholder="https://facebook.com/konkurent" />
+              </div>
+              <div>
+                <label class="label" for="f-instagram">Profil Instagram</label>
+                <input id="f-instagram" name="competitor_instagram" class="input" type="url" placeholder="https://instagram.com/konkurent" />
+              </div>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="label" for="f-tiktok">Profil TikTok</label>
+                <input id="f-tiktok" name="competitor_tiktok" class="input" type="url" placeholder="https://tiktok.com/@konkurent" />
+              </div>
+              <div>
+                <label class="label" for="f-linkedin">Profil LinkedIn</label>
+                <input id="f-linkedin" name="competitor_linkedin" class="input" type="url" placeholder="https://linkedin.com/company/konkurent" />
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 pt-6 border-t border-slate-100">
+            <label class="label" for="f-competition">Notatki (Biblioteka Reklam Meta, obserwacje)</label>
+            <textarea id="f-competition" name="competition" class="textarea" placeholder="np. https://www.facebook.com/ads/library/?q=konkurent — konkurent A promuje darmowy audyt, konkurent B stawia na webinary i reklamy wideo z prezesem…"></textarea>
+          </div>
         </div>
 
         <!-- Akcja -->
@@ -775,6 +804,11 @@ function generate(f) {
     `Przeprowadź analizę konkurencji według checklisty i uzupełnij hipotezy.`,
   ];
 
+  // Analiza konkurentów przez Apify (asynchronicznie, w tle — nie blokuje raportu)
+  if (f.competitor_website || f.competitor_facebook || f.competitor_instagram || f.competitor_tiktok || f.competitor_linkedin) {
+    analyzeCompetitorsAsync(f);
+  }
+
   return {
     meta: { name: f.name, industry: ind.label, goal: goal.label, budget: bud.label, total, ages: f.ages, who: f.who, channels: channels.map(c => c.label), date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }), exactBudget: f.budgetPln > 0 },
     alerts, audience, comms, channels, suggested, funnel, funnelNote, competition, plan, kpis: goal.kpis, bench: ind.kpiBench, next,
@@ -1013,6 +1047,11 @@ function readForm() {
     budgetPln: Number(fd.get('budgetPln')) || 0,
     channels: fd.getAll('channels'),
     competition: (fd.get('competition') || '').trim(),
+    competitor_website: (fd.get('competitor_website') || '').trim(),
+    competitor_facebook: (fd.get('competitor_facebook') || '').trim(),
+    competitor_instagram: (fd.get('competitor_instagram') || '').trim(),
+    competitor_tiktok: (fd.get('competitor_tiktok') || '').trim(),
+    competitor_linkedin: (fd.get('competitor_linkedin') || '').trim(),
   };
 }
 
@@ -1021,6 +1060,9 @@ function writeForm(f) {
   form.name.value = f.name || ''; form.industry.value = f.industry || ''; form.who.value = f.who || '';
   form.interests.value = f.interests || ''; form.challenges.value = f.challenges || ''; form.budget.value = f.budget || '';
   form.budgetPln.value = f.budgetPln || ''; form.competition.value = f.competition || '';
+  form.competitor_website.value = f.competitor_website || ''; form.competitor_facebook.value = f.competitor_facebook || '';
+  form.competitor_instagram.value = f.competitor_instagram || ''; form.competitor_tiktok.value = f.competitor_tiktok || '';
+  form.competitor_linkedin.value = f.competitor_linkedin || '';
   $$('input[name="ages"]').forEach(i => i.checked = (f.ages || []).includes(i.value));
   $$('input[name="channels"]').forEach(i => i.checked = (f.channels || []).includes(i.value));
   $$('input[name="goal"]').forEach(i => i.checked = i.value === f.goal);
@@ -1110,6 +1152,59 @@ const DEMO = {
   goal: 'leads', budget: 'medium', budgetPln: 6000, channels: ['linkedin', 'google', 'meta'],
   competition: 'https://www.facebook.com/ads/library/?q=konkurent\nKonkurent A promuje darmowy audyt produkcji w reklamach wideo z prezesem. Konkurent B stawia na comiesięczne webinary i raporty PDF.',
 };
+
+
+/* ===== Apify Competitor Analysis ===== */
+function analyzeCompetitorsAsync(f) {
+  if (!('competitor_website' in f)) return;
+
+  const payload = {
+    website: f.competitor_website,
+    facebook: f.competitor_facebook,
+    instagram: f.competitor_instagram,
+    tiktok: f.competitor_tiktok,
+    linkedin: f.competitor_linkedin,
+  };
+
+  const hasProfiles = Object.values(payload).some(v => v);
+  if (!hasProfiles) return;
+
+  // Plik otwarty bezpośrednio (file://) nie ma za sobą serwera backendu —
+  // fetch() do względnej ścieżki potrafi w niektórych przeglądarkach (Safari)
+  // wisieć bez końca zamiast szybko zwrócić błąd. Nie wysyłamy zapytania.
+  if (location.protocol === 'file:') {
+    toast('Analiza konkurentów wymaga uruchomionego serwera (server.py) — pomiń przy testach lokalnych z pliku', 'info');
+    return;
+  }
+
+  // Zabezpieczenie na wypadek, gdy backend nie odpowiada: przerywamy po 15 s,
+  // żeby zapytanie nigdy nie wisiało w nieskończoność.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  fetch('/api/analyze-competitors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal: controller.signal,
+  })
+    .then(r => {
+      if (!r.ok) throw new Error(`Serwer zwrócił błąd ${r.status}`);
+      return r.json();
+    })
+    .then(results => {
+      console.log('Competitor analysis:', results);
+      // Store in state for potential future use
+      if (state.report) state.report.competitorData = results;
+      toast('Analiza konkurentów zakończona', 'check-circle');
+    })
+    .catch(e => {
+      const msg = e.name === 'AbortError' ? 'Analiza konkurentów przekroczyła czas oczekiwania' : 'Analiza konkurentów nie powiodła się';
+      console.log('Competitor analysis error:', e);
+      toast(msg, 'alert-circle');
+    })
+    .finally(() => clearTimeout(timeoutId));
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   icons();
