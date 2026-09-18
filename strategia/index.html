@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator Strategii Marketingowej</title>
+  <meta name="description" content="Interaktywne narzędzie szkoleniowe: wygeneruj wstępne rekomendacje strategiczne i plan kampanii na podstawie danych o firmie, grupie docelowej, celu i budżecie." />
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Sora', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(79,70,229,.18)',
+            glow: '0 10px 40px -10px rgba(79,70,229,.45)',
+          },
+        },
+      },
+    };
+  </script>
+  <!-- Fonty -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root {
+      --ink: #0f172a;        /* slate-900 */
+      --indigo: #4f46e5;     /* indigo-600 */
+      --indigo-deep: #3730a3;/* indigo-800 */
+      --sky: #0ea5e9;        /* sky-500 */
+      --bg: #f8fafc;         /* slate-50 */
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--ink); }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(79,70,229,.18); }
+    .label { display:block; font-size:.8rem; font-weight:600; color:#334155; margin-bottom:.4rem; letter-spacing:.01em; }
+    .input, .select, .textarea {
+      width:100%; border:1px solid #cbd5e1; border-radius:.75rem; padding:.7rem .9rem; font-size:.95rem; background:#fff; color:var(--ink);
+      transition: border-color .15s, box-shadow .15s; outline:none;
+    }
+    .input:focus, .select:focus, .textarea:focus { border-color:var(--indigo); box-shadow:0 0 0 4px rgba(79,70,229,.12); }
+    .input.is-invalid, .select.is-invalid, .textarea.is-invalid { border-color:#ef4444; box-shadow:0 0 0 4px rgba(239,68,68,.10); }
+    .textarea { min-height: 96px; resize: vertical; }
+    .select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right .8rem center; padding-right:2.4rem; }
+
+    /* Chipsy (checkbox/radio jako karty) */
+    .chip input { position:absolute; opacity:0; pointer-events:none; }
+    .chip span { display:inline-flex; align-items:center; gap:.45rem; border:1px solid #cbd5e1; border-radius:999px; padding:.5rem .95rem; font-size:.875rem; font-weight:500; color:#334155; background:#fff; cursor:pointer; transition:all .15s; user-select:none; }
+    .chip input:checked + span { background:#eef2ff; border-color:var(--indigo); color:var(--indigo-deep); }
+    .chip input:focus-visible + span { box-shadow:0 0 0 4px rgba(79,70,229,.18); }
+    .chip span:hover { border-color:#94a3b8; }
+
+    .tile input { position:absolute; opacity:0; pointer-events:none; }
+    .tile > span { display:flex; flex-direction:column; gap:.25rem; border:1px solid #cbd5e1; border-radius:.9rem; padding:.85rem 1rem; cursor:pointer; background:#fff; transition:all .15s; height:100%; }
+    .tile input:checked + span { border-color:var(--indigo); background:#eef2ff; box-shadow:0 0 0 1px var(--indigo) inset; }
+    .tile input:focus-visible + span { box-shadow:0 0 0 4px rgba(79,70,229,.18); }
+    .tile > span:hover { border-color:#94a3b8; }
+
+    .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; background:linear-gradient(135deg,#4f46e5,#4338ca); color:#fff; font-weight:600; border-radius:.8rem; padding:.85rem 1.4rem; box-shadow:0 10px 40px -10px rgba(79,70,229,.45); transition:transform .1s, filter .15s; }
+    .btn-primary:hover { filter:brightness(1.06); }
+    .btn-primary:active { transform:translateY(1px); }
+    .btn-primary:focus-visible, .btn-ghost:focus-visible { outline:3px solid rgba(79,70,229,.35); outline-offset:2px; }
+    .btn-ghost { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; background:#fff; color:#334155; font-weight:600; border:1px solid #cbd5e1; border-radius:.8rem; padding:.7rem 1.1rem; transition:all .15s; }
+    .btn-ghost:hover { border-color:#94a3b8; background:#f8fafc; }
+
+    /* Lejek */
+    .funnel-band { clip-path: polygon(0 0, 100% 0, 94% 100%, 6% 100%); }
+
+    /* Pasek dopasowania kanału */
+    .score { display:flex; gap:3px; }
+    .score i { display:block; width:14px; height:8px; border-radius:2px; background:#e2e8f0; }
+    .score i.on { background:var(--indigo); }
+
+    .fade-in { animation: fadeIn .45s ease both; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px);} to { opacity:1; transform:none;} }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg);} }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-in, .spin { animation:none !important; }
+      html { scroll-behavior:auto; }
+    }
+
+    /* Ukrycie ikon do czasu załadowania Lucide */
+    [data-lucide] { width:1.1em; height:1.1em; }
+
+    /* ===== Druk / PDF ===== */
+    @page { margin: 14mm; }
+    @media print {
+      body { background:#fff !important; color:#000; }
+      .no-print { display:none !important; }
+      #report { display:block !important; }
+      .card { box-shadow:none !important; border:1px solid #cbd5e1 !important; break-inside:avoid; page-break-inside:avoid; margin-bottom:10mm; }
+      .print-title { display:block !important; }
+      a { text-decoration:none; color:inherit; }
+      .print-break { break-before:page; page-break-before:always; }
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased min-h-screen">
+
+  <!-- ===== NAGŁÓWEK ===== -->
+  <header class="no-print border-b border-slate-200/70 bg-white/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white grid place-items-center shadow-glow">
+          <i data-lucide="compass" class="w-5 h-5"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="font-display font-semibold text-slate-900">Generator Strategii</div>
+          <div class="text-xs text-slate-500 hidden sm:block">Marketing · komunikacja · social media</div>
+        </div>
+      </div>
+
+      <!-- Stepper -->
+      <ol id="stepper" class="hidden md:flex items-center gap-2 text-sm">
+        <li data-step="1" class="step flex items-center gap-2 px-3 py-1.5 rounded-full">
+          <span class="num h-6 w-6 grid place-items-center rounded-full text-xs font-bold">1</span> Dane
+        </li>
+        <li class="text-slate-300"><i data-lucide="chevron-right" class="w-4 h-4"></i></li>
+        <li data-step="2" class="step flex items-center gap-2 px-3 py-1.5 rounded-full">
+          <span class="num h-6 w-6 grid place-items-center rounded-full text-xs font-bold">2</span> Strategia
+        </li>
+        <li class="text-slate-300"><i data-lucide="chevron-right" class="w-4 h-4"></i></li>
+        <li data-step="3" class="step flex items-center gap-2 px-3 py-1.5 rounded-full">
+          <span class="num h-6 w-6 grid place-items-center rounded-full text-xs font-bold">3</span> Eksport
+        </li>
+      </ol>
+
+      <button id="btn-demo" type="button" class="btn-ghost text-sm !py-2 !px-3">
+        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i><span class="hidden sm:inline">Wczytaj przykład</span><span class="sm:hidden">Przykład</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+    <!-- ===== HERO ===== -->
+    <section id="hero" class="no-print mb-10">
+      <p class="text-xs font-semibold tracking-widest uppercase text-indigo-600 mb-3">Narzędzie szkoleniowe</p>
+      <h1 class="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 leading-tight max-w-3xl">
+        Od danych o firmie do <span class="text-indigo-600">planu kampanii</span> w kilka minut.
+      </h1>
+      <p class="mt-4 text-slate-600 max-w-2xl text-base sm:text-lg">
+        Wprowadź informacje o marce, grupie docelowej, celu i budżecie. Narzędzie przygotuje wstępne rekomendacje:
+        profil odbiorcy, ton komunikacji, dobór kanałów, podział budżetu w lejku oraz wskazówki do analizy konkurencji.
+      </p>
+    </section>
+
+    <!-- ===== KROK 1: FORMULARZ ===== -->
+    <section id="form-section" class="no-print">
+      <form id="strategy-form" class="grid gap-6" novalidate>
+
+        <!-- Firma i branża -->
+        <div class="card p-6 sm:p-8">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-display text-lg font-semibold">Firma i branża</h2>
+              <p class="text-sm text-slate-500">Kogo dotyczy strategia i w jakim modelu działa.</p>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label class="label" for="f-name">Nazwa firmy / projektu <span class="text-rose-500">*</span></label>
+              <input id="f-name" name="name" class="input" type="text" placeholder="np. Nexo Consulting" autocomplete="organization" />
+              <p class="err text-xs text-rose-600 mt-1 hidden" data-for="name">Podaj nazwę firmy lub projektu.</p>
+            </div>
+            <div>
+              <label class="label" for="f-industry">Branża / model biznesowy <span class="text-rose-500">*</span></label>
+              <select id="f-industry" name="industry" class="select">
+                <option value="">Wybierz…</option>
+                <option value="b2b">B2B / usługi dla firm</option>
+                <option value="ecommerce">E-commerce / sklep internetowy</option>
+                <option value="local">Usługi lokalne (gabinet, salon, restauracja, warsztat)</option>
+                <option value="education">Edukacja / szkolenia / kursy online</option>
+                <option value="saas">SaaS / aplikacja / technologia</option>
+                <option value="other">Inna</option>
+              </select>
+              <p class="err text-xs text-rose-600 mt-1 hidden" data-for="industry">Wybierz branżę.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grupa docelowa -->
+        <div class="card p-6 sm:p-8">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="users" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-display text-lg font-semibold">Grupa docelowa</h2>
+              <p class="text-sm text-slate-500">Im konkretniej, tym trafniejsze rekomendacje.</p>
+            </div>
+          </div>
+          <div class="grid gap-5">
+            <div>
+              <label class="label" for="f-who">Kim są Twoi odbiorcy? <span class="text-rose-500">*</span></label>
+              <input id="f-who" name="who" class="input" type="text" placeholder="np. właściciele firm produkcyjnych 50–250 pracowników" />
+              <p class="err text-xs text-rose-600 mt-1 hidden" data-for="who">Opisz krótko, kim są odbiorcy.</p>
+            </div>
+            <div>
+              <span class="label">Przedział wiekowy <span class="text-rose-500">*</span> <span class="font-normal text-slate-400">(możesz wybrać kilka)</span></span>
+              <div id="ages" class="flex flex-wrap gap-2">
+                <label class="chip relative"><input type="checkbox" name="ages" value="18-24"><span>18–24</span></label>
+                <label class="chip relative"><input type="checkbox" name="ages" value="25-34"><span>25–34</span></label>
+                <label class="chip relative"><input type="checkbox" name="ages" value="35-44"><span>35–44</span></label>
+                <label class="chip relative"><input type="checkbox" name="ages" value="45-54"><span>45–54</span></label>
+                <label class="chip relative"><input type="checkbox" name="ages" value="55+"><span>55+</span></label>
+              </div>
+              <p class="err text-xs text-rose-600 mt-1 hidden" data-for="ages">Zaznacz co najmniej jeden przedział wiekowy.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-5">
+              <div>
+                <label class="label" for="f-interests">Zainteresowania / kontekst</label>
+                <input id="f-interests" name="interests" class="input" type="text" placeholder="np. automatyzacja, lean, rozwój zespołu" />
+              </div>
+              <div>
+                <label class="label" for="f-challenges">Wyzwania / problemy (oddziel przecinkami)</label>
+                <input id="f-challenges" name="challenges" class="input" type="text" placeholder="np. rosnące koszty, brak czasu, brak danych" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cel i budżet -->
+        <div class="card p-6 sm:p-8">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="target" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-display text-lg font-semibold">Cel i budżet</h2>
+              <p class="text-sm text-slate-500">Jeden główny cel — od niego zależy struktura lejka.</p>
+            </div>
+          </div>
+
+          <span class="label">Główny cel biznesowy <span class="text-rose-500">*</span></span>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <label class="tile relative"><input type="radio" name="goal" value="leads"><span><b class="text-sm text-slate-900 flex items-center gap-2"><i data-lucide="inbox" class="w-4 h-4 text-indigo-600"></i>Pozyskanie leadów</b><small class="text-xs text-slate-500">Zapytania, konsultacje, wyceny</small></span></label>
+            <label class="tile relative"><input type="radio" name="goal" value="sales"><span><b class="text-sm text-slate-900 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4 text-indigo-600"></i>Sprzedaż online</b><small class="text-xs text-slate-500">Zakupy w sklepie / na stronie</small></span></label>
+            <label class="tile relative"><input type="radio" name="goal" value="awareness"><span><b class="text-sm text-slate-900 flex items-center gap-2"><i data-lucide="megaphone" class="w-4 h-4 text-indigo-600"></i>Świadomość marki</b><small class="text-xs text-slate-500">Zasięg, rozpoznawalność</small></span></label>
+            <label class="tile relative"><input type="radio" name="goal" value="signups"><span><b class="text-sm text-slate-900 flex items-center gap-2"><i data-lucide="calendar-check" class="w-4 h-4 text-indigo-600"></i>Zapisy / rejestracje</b><small class="text-xs text-slate-500">Webinar, kurs, wydarzenie, trial</small></span></label>
+          </div>
+          <p class="err text-xs text-rose-600 -mt-4 mb-4 hidden" data-for="goal">Wybierz główny cel.</p>
+
+          <div class="grid sm:grid-cols-2 gap-5 mb-6">
+            <div>
+              <label class="label" for="f-budget">Budżet miesięczny (media) <span class="text-rose-500">*</span></label>
+              <select id="f-budget" name="budget" class="select">
+                <option value="">Wybierz…</option>
+                <option value="low">Niski — do 3 000 zł</option>
+                <option value="medium">Średni — 3 000 do 10 000 zł</option>
+                <option value="high">Wysoki — powyżej 10 000 zł</option>
+              </select>
+              <p class="err text-xs text-rose-600 mt-1 hidden" data-for="budget">Wybierz poziom budżetu.</p>
+            </div>
+            <div>
+              <label class="label" for="f-budget-pln">Dokładna kwota (opcjonalnie, zł / mies.)</label>
+              <input id="f-budget-pln" name="budgetPln" class="input" type="number" min="0" step="100" placeholder="np. 6000" inputmode="numeric" />
+            </div>
+          </div>
+
+          <span class="label">Kanały / platformy reklamowe <span class="text-rose-500">*</span> <span class="font-normal text-slate-400">(wybierz jeden lub więcej)</span></span>
+          <div id="channels" class="flex flex-wrap gap-2">
+            <label class="chip relative"><input type="checkbox" name="channels" value="meta"><span><i data-lucide="facebook" class="w-4 h-4"></i>Meta Ads (Facebook, Instagram)</span></label>
+            <label class="chip relative"><input type="checkbox" name="channels" value="linkedin"><span><i data-lucide="linkedin" class="w-4 h-4"></i>LinkedIn Ads</span></label>
+            <label class="chip relative"><input type="checkbox" name="channels" value="google"><span><i data-lucide="search" class="w-4 h-4"></i>Google Ads</span></label>
+            <label class="chip relative"><input type="checkbox" name="channels" value="tiktok"><span><i data-lucide="music" class="w-4 h-4"></i>TikTok Ads</span></label>
+            <label class="chip relative"><input type="checkbox" name="channels" value="youtube"><span><i data-lucide="youtube" class="w-4 h-4"></i>YouTube Ads</span></label>
+          </div>
+          <p class="err text-xs text-rose-600 mt-1 hidden" data-for="channels">Zaznacz co najmniej jeden kanał.</p>
+        </div>
+
+        <!-- Konkurencja -->
+        <div class="card p-6 sm:p-8">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="binoculars" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-display text-lg font-semibold">Konkurencja <span class="text-slate-400 font-normal text-sm">(opcjonalnie)</span></h2>
+              <p class="text-sm text-slate-500">Wklej linki z Biblioteki Reklam Meta lub krótko opisz, co robi konkurencja.</p>
+            </div>
+          </div>
+          <textarea id="f-competition" name="competition" class="textarea" placeholder="np. https://www.facebook.com/ads/library/?q=konkurent — konkurent A promuje darmowy audyt, konkurent B stawia na webinary i reklamy wideo z prezesem…"></textarea>
+        </div>
+
+        <!-- Akcja -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+          <p class="text-xs text-slate-500 flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4"></i>Dane pozostają w Twojej przeglądarce — nic nie jest wysyłane na serwer.</p>
+          <button id="btn-generate" type="submit" class="btn-primary text-base">
+            <i data-lucide="wand-2" class="w-5 h-5"></i> Wygeneruj strategię
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== EKRAN GENEROWANIA ===== -->
+    <section id="loading" class="no-print hidden">
+      <div class="card p-10 sm:p-14 text-center max-w-xl mx-auto">
+        <div class="mx-auto h-14 w-14 rounded-2xl bg-indigo-50 text-indigo-600 grid place-items-center mb-5">
+          <i data-lucide="loader-circle" class="w-7 h-7 spin"></i>
+        </div>
+        <h2 class="font-display text-xl font-semibold mb-2">Przygotowuję rekomendacje</h2>
+        <p id="loading-msg" class="text-slate-500 text-sm min-h-[1.5rem]">Analizuję grupę docelową…</p>
+        <div class="mt-6 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div id="loading-bar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width:8%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== KROK 2/3: RAPORT ===== -->
+    <section id="report" class="hidden"></section>
+
+  </main>
+
+  <footer class="no-print border-t border-slate-200 mt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-xs text-slate-500 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+      <span>Narzędzie szkoleniowe. Rekomendacje mają charakter wstępny i wymagają weryfikacji w danych.</span>
+      <span>Działa lokalnie w przeglądarce · HTML + Tailwind + Vanilla JS</span>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="no-print fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 z-50 flex items-center gap-2"></div>
+
+<script>
+/* =====================================================================
+   1. BAZA WIEDZY — reguły, z których składane są rekomendacje
+   ===================================================================== */
+
+const AGES = ['18-24', '25-34', '35-44', '45-54', '55+'];
+
+const AGE_PROFILE = {
+  '18-24': { insight: 'Pokolenie Z: ufa twórcom i autentycznym treściom bardziej niż markom. Konsumuje głównie krótkie wideo pionowe, szybko przewija, nagradza humor i szczerość.', platforms: ['TikTok', 'Instagram (Reels)', 'YouTube Shorts'] },
+  '25-34': { insight: 'Młodzi milenialsi: aktywni na Instagramie i LinkedIn, porównują oferty w Google, reagują na social proof, wygodę i szybkie odpowiedzi.', platforms: ['Instagram', 'LinkedIn', 'Google', 'YouTube'] },
+  '35-44': { insight: 'Ustabilizowani zawodowo, często pełnią rolę decydentów. Cenią czas: konkret, wiarygodność i krótka ścieżka do kontaktu działają lepiej niż długi storytelling.', platforms: ['Facebook', 'LinkedIn', 'Google', 'YouTube'] },
+  '45-54': { insight: 'Silna obecność na Facebooku i w wyszukiwarce Google. Wysoka wartość zamówienia, ale potrzebują więcej dowodów, jasnego procesu i poczucia bezpieczeństwa.', platforms: ['Facebook', 'Google', 'YouTube'] },
+  '55+':   { insight: 'Najbardziej aktywni na Facebooku i YouTube. W kreacjach sprawdza się prosty język, duże fonty, telefon lub Messenger jako wezwanie do działania.', platforms: ['Facebook', 'YouTube', 'Google'] },
+};
+
+const INDUSTRIES = {
+  b2b: {
+    label: 'B2B / usługi dla firm',
+    whoDefault: 'decydenci i osoby wpływające na decyzje zakupowe w firmach',
+    cycle: 'długi i wieloetapowy: w decyzji uczestniczy zwykle kilka osób, a od pierwszego kontaktu do zakupu mijają tygodnie lub miesiące',
+    trigger: 'presja na wyniki, koszty oraz ryzyko wyboru złego dostawcy',
+    tone: { name: 'Ekspercki i konkretny', desc: 'Mówisz jak doświadczony doradca: rzeczowo, bez marketingowego żargonu, z liczbami i dowodami. Zaufanie budujesz kompetencją, nie emocjami.' },
+    pillars: ['Case studies z konkretnymi wynikami', 'Edukacja: jak rozwiązać problem klienta krok po kroku', 'Proces współpracy i onboarding', 'Opinie i rekomendacje decydentów'],
+    proof: 'case studies z liczbami, logotypy klientów, certyfikaty, wypowiedzi ekspertów',
+    cta: 'Umów bezpłatną konsultację · Pobierz raport · Zobacz case study',
+    dos: ['Pokazuj zwrot z inwestycji i konkretne rezultaty', 'Używaj języka branży klienta, nie swojego', 'Dawaj wartość przed sprzedażą: raporty, checklisty, webinary'],
+    donts: ['Nie obiecuj „rewolucji” bez dowodów', 'Nie kieruj kampanii czysto sprzedażowych do zimnego ruchu', 'Nie pomijaj remarketingu — decyzja dojrzewa tygodniami'],
+    channel: { meta: 1, linkedin: 4, google: 3, tiktok: -2, youtube: 1 },
+    funnel: { tofu: -5, mofu: 10, bofu: -5 },
+    hypotheses: ['Czy konkurenci komunikują cenę lub widełki wprost?', 'Jaki lead magnet oferują (audyt, raport, kalkulator)?', 'Czy w reklamach występują ludzie z firmy (eksperci), czy tylko grafiki?'],
+    kpiBench: 'Orientacyjne koszty leada: LinkedIn 150–400 zł, Google Search 80–250 zł, Meta 40–150 zł (zależnie od branży i jakości).',
+  },
+  ecommerce: {
+    label: 'E-commerce / sklep internetowy',
+    whoDefault: 'klienci indywidualni kupujący online',
+    cycle: 'krótki lub średni: od impulsu po kilkudniowe porównywanie ofert; kluczowy jest remarketing i wygoda zakupu',
+    trigger: 'potrzeba, okazja cenowa, rekomendacja lub inspiracja z social media',
+    tone: { name: 'Lekki, wizualny i konkretny', desc: 'Komunikacja oparta na produkcie i korzyści: pokazujesz, jak produkt wygląda w użyciu, ile kosztuje i dlaczego warto teraz. Krótkie zdania, mocne obrazy, jasna oferta.' },
+    pillars: ['Produkt w użyciu (UGC, wideo, unboxing)', 'Opinie i social proof', 'Oferty, nowości, bestsellery', 'Poradniki: jak wybrać / jak używać'],
+    proof: 'liczba opinii i ocen, zdjęcia klientów, „bestseller”, gwarancja zwrotu',
+    cta: 'Kup teraz · Sprawdź ofertę · Dodaj do koszyka',
+    dos: ['Testuj kreacje w formacie 9:16 z produktem w pierwszych 2 sekundach', 'Pokazuj cenę i warunki dostawy w reklamie', 'Buduj listę mailingową równolegle do płatnych kampanii'],
+    donts: ['Nie wysyłaj ruchu na stronę główną — kieruj na kategorię lub produkt', 'Nie rezygnuj z remarketingu dynamicznego', 'Nie kopiuj kreacji ze stocka — konkurencja też je ma'],
+    channel: { meta: 4, linkedin: -3, google: 3, tiktok: 2, youtube: 1 },
+    funnel: { tofu: -5, mofu: -5, bofu: 10 },
+    hypotheses: ['Jakie promocje i progi darmowej dostawy stosują konkurenci?', 'Czy używają UGC i treści od twórców?', 'Jak długo działają ich najstarsze reklamy (to zwykle zwycięskie kreacje)?'],
+    kpiBench: 'Orientacyjnie: ROAS 3–6 dla kampanii katalogowych, CTR reklam Meta 1–2%, koszt kliknięcia 0,5–2 zł.',
+  },
+  local: {
+    label: 'Usługi lokalne',
+    whoDefault: 'mieszkańcy okolicy i osoby dojeżdżające',
+    cycle: 'krótki: klient szuka usługi wtedy, gdy ma potrzebę, i wybiera na podstawie opinii, lokalizacji oraz dostępności terminu',
+    trigger: 'pilna potrzeba, polecenie, opinie w Google, oferta w okolicy',
+    tone: { name: 'Bliski, ludzki i konkretny', desc: 'Mówisz jak sąsiad-ekspert: ciepło, prosto, z twarzą właściciela lub zespołu. Podkreślasz lokalność, opinie, łatwość kontaktu i terminy.' },
+    pillars: ['Zespół i kulisy pracy', 'Opinie klientów (Google, Facebook)', 'Efekty przed / po', 'Oferty sezonowe i dostępność terminów'],
+    proof: 'opinie Google z liczbą gwiazdek, zdjęcia realizacji, lata działalności, liczba obsłużonych klientów',
+    cta: 'Zadzwoń · Napisz na Messengerze · Umów wizytę online',
+    dos: ['Zadbaj o profil firmy w Google (zdjęcia, opinie, godziny)', 'Targetuj promień 5–15 km wokół lokalizacji', 'Odpowiadaj na wiadomości w ciągu kilku minut w godzinach pracy'],
+    donts: ['Nie płać za zasięg poza obszarem obsługi', 'Nie ukrywaj cennika, jeśli klienci o niego pytają', 'Nie zaniedbuj odpowiedzi na opinie, także negatywne'],
+    channel: { meta: 4, linkedin: -3, google: 4, tiktok: 0, youtube: -1 },
+    funnel: { tofu: -10, mofu: 0, bofu: 10 },
+    hypotheses: ['Czy konkurencja reklamuje się z ofertą cenową, czy z jakością?', 'Jakie mają oceny w Google i jak odpowiadają na opinie?', 'Czy prowadzą reklamy z celem „Wiadomości” lub połączeń?'],
+    kpiBench: 'Orientacyjnie: koszt wiadomości/połączenia z Meta 8–30 zł, koszt kliknięcia w Google dla fraz lokalnych 1–6 zł.',
+  },
+  education: {
+    label: 'Edukacja / szkolenia / kursy',
+    whoDefault: 'osoby chcące rozwinąć kompetencje zawodowe lub osobiste',
+    cycle: 'średni: uczestnik potrzebuje kilku punktów styku (treść, webinar, opinie), zanim zapisze się lub kupi',
+    trigger: 'chęć zmiany, presja rynku pracy, konkretny problem do rozwiązania, polecenie',
+    tone: { name: 'Mentorski i inspirujący', desc: 'Prowadzisz odbiorcę jak dobry nauczyciel: pokazujesz efekt końcowy, dajesz próbkę wiedzy za darmo i budujesz autorytet twarzą prowadzącego.' },
+    pillars: ['Bezpłatna wiedza (mini-lekcje, wskazówki)', 'Historie uczestników i ich efekty', 'Twarz prowadzącego i kulisy', 'Program, terminy, bonusy'],
+    proof: 'liczba absolwentów, opinie wideo, certyfikaty, logotypy firm, z których są uczestnicy',
+    cta: 'Zapisz się na bezpłatny webinar · Pobierz próbną lekcję · Dołącz do kursu',
+    dos: ['Buduj listę mailingową lead magnetem i domykaj sprzedaż sekwencją e-mail', 'Wykorzystuj fragmenty prawdziwych zajęć jako kreacje', 'Twórz okna sprzedażowe z jasnym terminem'],
+    donts: ['Nie obiecuj efektów, których nie potwierdzasz danymi', 'Nie kieruj zimnego ruchu wprost na stronę zakupu drogiego kursu', 'Nie zaniedbuj remarketingu po webinarze'],
+    channel: { meta: 3, linkedin: 2, google: 2, tiktok: 1, youtube: 2 },
+    funnel: { tofu: 0, mofu: 10, bofu: -10 },
+    hypotheses: ['Jaki jest lead magnet konkurencji (webinar, PDF, mini-kurs)?', 'Czy sprzedają w oknach (launch), czy ciągle (evergreen)?', 'Jak długie są ich wideo i czy prowadzący pojawia się w reklamach?'],
+    kpiBench: 'Orientacyjnie: koszt zapisu na webinar 10–40 zł (Meta), koszt leada w LinkedIn 80–250 zł, konwersja webinar → zakup 2–8%.',
+  },
+  saas: {
+    label: 'SaaS / aplikacja / technologia',
+    whoDefault: 'użytkownicy i decydenci szukający narzędzia do rozwiązania konkretnego problemu',
+    cycle: 'średni lub długi: od poznania problemu, przez porównanie narzędzi i trial, po decyzję; często kilka osób w procesie',
+    trigger: 'ból operacyjny (czas, błędy, koszty), zmiana skali firmy, rekomendacja',
+    tone: { name: 'Klarowny i pewny siebie', desc: 'Tłumaczysz złożone rzeczy prosto: jedna funkcja, jedna korzyść, jeden zrzut ekranu. Pokazujesz produkt zamiast go opisywać, unikasz buzzwordów.' },
+    pillars: ['Produkt w akcji (demo, zrzuty, krótkie wideo)', 'Porównania i alternatywy', 'Historie klientów z metrykami', 'Integracje, bezpieczeństwo, wsparcie'],
+    proof: 'liczba użytkowników, oceny w serwisach recenzujących, logotypy klientów, metryki z case studies',
+    cta: 'Wypróbuj bezpłatnie · Umów demo · Zobacz, jak to działa',
+    dos: ['Kieruj kampanie Google na frazy „alternatywa dla X” i problemowe', 'Prowadź remarketing do osób, które założyły konto, ale nie aktywowały', 'Testuj wideo z interfejsem w pierwszych sekundach'],
+    donts: ['Nie sprzedawaj listy funkcji — sprzedawaj rozwiązany problem', 'Nie ignoruj onboardingu, bo tam ucieka konwersja', 'Nie uruchamiaj kampanii bez śledzenia zdarzeń w produkcie'],
+    channel: { meta: 1, linkedin: 3, google: 4, tiktok: -1, youtube: 2 },
+    funnel: { tofu: -5, mofu: 5, bofu: 0 },
+    hypotheses: ['Jak konkurencja pozycjonuje cenę (freemium, trial, demo)?', 'Czy licytują na frazy z Twoją marką?', 'Jakie porównania i „vs.” komunikują w reklamach?'],
+    kpiBench: 'Orientacyjnie: koszt rejestracji trial 30–150 zł, koszt demo B2B 200–600 zł, konwersja trial → płatny 5–15%.',
+  },
+  other: {
+    label: 'Inna branża',
+    whoDefault: 'odbiorcy zainteresowani ofertą',
+    cycle: 'zależny od wartości zakupu: im wyższa cena i ryzyko, tym więcej punktów styku potrzebuje odbiorca',
+    trigger: 'potrzeba, polecenie lub inspiracja',
+    tone: { name: 'Profesjonalny i przystępny', desc: 'Łączysz wiarygodność z prostym językiem. Mówisz o korzyściach z perspektywy odbiorcy i zawsze wskazujesz jeden następny krok.' },
+    pillars: ['Problem odbiorcy i jak go rozwiązujesz', 'Dowody i opinie', 'Kulisy i ludzie', 'Oferta i wezwanie do działania'],
+    proof: 'opinie, liczby, realizacje, rekomendacje',
+    cta: 'Skontaktuj się · Sprawdź ofertę · Dowiedz się więcej',
+    dos: ['Zdefiniuj jedną główną konwersję i mierz ją od pierwszego dnia', 'Testuj 3–4 kreacje na grupę odbiorców', 'Rozdziel kampanie na zimny ruch i remarketing'],
+    donts: ['Nie rozpraszaj budżetu na zbyt wiele kanałów', 'Nie zmieniaj kampanii codziennie — daj algorytmom 5–7 dni', 'Nie oceniaj wyników bez poprawnie wdrożonego śledzenia'],
+    channel: { meta: 2, linkedin: 0, google: 2, tiktok: 0, youtube: 0 },
+    funnel: { tofu: 0, mofu: 0, bofu: 0 },
+    hypotheses: ['Do jakiego etapu lejka kieruje konkurencja większość reklam?', 'Jaką ofertę wejścia komunikują?', 'Jakie formaty dominują: wideo, grafika, karuzela?'],
+    kpiBench: 'Benchmarki zależą silnie od branży; w pierwszym miesiącu ustal własne punkty odniesienia.',
+  },
+};
+
+const GOALS = {
+  leads:     { label: 'Pozyskanie leadów', short: 'leady', funnel: { tofu: 25, mofu: 35, bofu: 40 }, channel: { meta: 1, linkedin: 2, google: 2, tiktok: 0, youtube: 0 },
+               kpis: ['Koszt pozyskania leada (CPL)', 'Współczynnik konwersji formularza', 'Odsetek leadów zakwalifikowanych przez sprzedaż'],
+               adjust: 'Każdy punkt styku ma prowadzić do wymiany wartości: konkretna korzyść (audyt, wycena, materiał) w zamian za kontakt. Formularz ma być krótki, a odpowiedź szybka.' },
+  sales:     { label: 'Sprzedaż online', short: 'sprzedaż', funnel: { tofu: 20, mofu: 30, bofu: 50 }, channel: { meta: 3, linkedin: -2, google: 3, tiktok: 2, youtube: 1 },
+               kpis: ['Zwrot z wydatków reklamowych (ROAS)', 'Koszt pozyskania zakupu (CPA)', 'Współczynnik konwersji sklepu i średnia wartość koszyka'],
+               adjust: 'Komunikacja ma być ofertowa i jednoznaczna: produkt, cena, korzyść, powód, by kupić teraz. Pilność i dowód społeczny wzmacniają decyzję.' },
+  awareness: { label: 'Świadomość marki', short: 'świadomość', funnel: { tofu: 60, mofu: 30, bofu: 10 }, channel: { meta: 2, linkedin: 1, google: -1, tiktok: 3, youtube: 3 },
+               kpis: ['Zasięg i częstotliwość w grupie docelowej', 'Koszt 1000 wyświetleń (CPM) i odsetek obejrzeń wideo', 'Wzrost wyszukiwań marki i ruchu bezpośredniego'],
+               adjust: 'Więcej storytellingu i powtarzalnych motywów (bohater, hasło, styl wizualny). Celem jest zapamiętanie, więc jedna myśl na kreację i konsekwencja przez wiele tygodni.' },
+  signups:   { label: 'Zapisy / rejestracje', short: 'zapisy', funnel: { tofu: 35, mofu: 35, bofu: 30 }, channel: { meta: 2, linkedin: 1, google: 1, tiktok: 1, youtube: 1 },
+               kpis: ['Koszt zapisu / rejestracji', 'Frekwencja lub aktywacja po zapisie', 'Konwersja z zapisu na sprzedaż'],
+               adjust: 'Sprzedajesz najpierw udział, nie produkt: jasna obietnica „co wyniesiesz”, termin i niski próg wejścia. Po zapisie liczy się przypominanie i dowożenie wartości.' },
+};
+
+const BUDGETS = {
+  low:    { label: 'Niski (do 3 000 zł / mies.)', defaultPln: 2000, maxChannels: 2, funnel: { tofu: -10, mofu: 0, bofu: 10 },
+            note: 'Przy tym budżecie wygrywa koncentracja: jeden lub dwa kanały, remarketing i kreacje robione własnymi siłami. Lepiej mieć 300 zł dziennie w jednym miejscu niż 100 zł w trzech.' },
+  medium: { label: 'Średni (3 000 do 10 000 zł / mies.)', defaultPln: 6000, maxChannels: 3, funnel: { tofu: 0, mofu: 0, bofu: 0 },
+            note: 'Budżet pozwala na dwa lub trzy kanały i sensowne testy kreacji. Rezerwuj około 15% na eksperymenty, resztę utrzymuj w sprawdzonych kampaniach.' },
+  high:   { label: 'Wysoki (powyżej 10 000 zł / mies.)', defaultPln: 15000, maxChannels: 5, funnel: { tofu: 5, mofu: 0, bofu: -5 },
+            note: 'Stać Cię na pełny lejek: kampanie zasięgowe zasilają remarketing, a kanały uzupełniają się nawzajem. Kluczowa jest atrybucja i cotygodniowa optymalizacja.' },
+};
+
+const CHANNELS = {
+  meta: {
+    label: 'Meta Ads', sub: 'Facebook · Instagram · Messenger', icon: 'facebook', color: '#4f46e5',
+    age: { '18-24': 0, '25-34': 1, '35-44': 1, '45-54': 2, '55+': 2 },
+    budgetPenalty: { low: 0, medium: 0, high: 0 },
+    why: {
+      b2b: 'Nie tu zapada decyzja zakupowa, ale to najtańszy sposób, by utrzymać markę w polu widzenia decydentów i prowadzić remarketing po wizycie na stronie.',
+      ecommerce: 'Największy zasięg i najlepsze narzędzia sprzedażowe: katalog produktów, kampanie Advantage+ i remarketing dynamiczny zamykają lejek.',
+      local: 'Precyzyjne targetowanie geograficzne i cel „Wiadomości” sprawiają, że klient z okolicy pisze do Ciebie prosto z reklamy.',
+      education: 'Najlepsze środowisko do budowy listy zapisów: Lead Ads, wideo z prowadzącym i remarketing do osób, które obejrzały fragment lekcji.',
+      saas: 'Świetny do remarketingu i kampanii zasięgowych z wideo produktowym; do zimnego ruchu działa najlepiej dla narzędzi z niskim progiem wejścia.',
+      other: 'Największy zasięg wśród wybranych grup wiekowych i pełen zestaw formatów od wideo po formularze kontaktowe.',
+    },
+    objective: { leads: 'Kontakty (Lead Ads lub konwersje na stronie)', sales: 'Sprzedaż (kampanie katalogowe / Advantage+ Shopping)', awareness: 'Rozpoznawalność (zasięg i wyświetlenia wideo)', signups: 'Kontakty lub Konwersje (zapis na stronie)' },
+    formats: {
+      leads: ['Lead Ads (formularz natychmiastowy) — najniższy koszt leada, wymaga kontaktu w ciągu 15 minut', 'Wideo 15–30 s: problem klienta → rozwiązanie → wezwanie do działania', 'Karuzela 3–5 kart: problem → rozwiązanie → dowód → CTA', 'Remarketing do osób, które obejrzały ponad 50% wideo'],
+      sales: ['Kampania katalogowa / Advantage+ Shopping z feedem produktów', 'Reels 9:16 z produktem w użyciu (UGC, unboxing)', 'Karuzela bestsellerów z ceną i oceną', 'Remarketing dynamiczny: porzucone koszyki i oglądane produkty'],
+      awareness: ['Reels i Stories 9:16 — krótkie, natywne wideo', 'Kampania Rozpoznawalność z limitem częstotliwości 2–3 / tydzień', 'Partnership Ads z twórcami', 'Karuzela „poznaj markę” dla nowych odbiorców'],
+      signups: ['Lead Ads z 1–2 pytaniami kwalifikującymi', 'Wideo zapowiadające: co uczestnik wyniesie z wydarzenia / kursu', 'Kampania Ruch → strona zapisu + remarketing do niezapisanych', 'Karuzela agendy lub modułów'],
+    },
+    tips: { low: 'Zacznij od jednej kampanii z 3–4 kreacjami i szerokim targetowaniem; Advantage+ zwykle wygrywa z ręcznym doborem zainteresowań.', medium: 'Rozdziel kampanię na zimny ruch (70%) i remarketing (30%); testuj hooki wideo co 2 tygodnie.', high: 'Buduj strukturę: zasięg → rozważanie → konwersja, z osobnymi budżetami i wykluczeniami odbiorców między etapami.' },
+  },
+  linkedin: {
+    label: 'LinkedIn Ads', sub: 'Feed · InMail · Document Ads', icon: 'linkedin', color: '#0ea5e9',
+    age: { '18-24': -2, '25-34': 1, '35-44': 2, '45-54': 1, '55+': -1 },
+    budgetPenalty: { low: -2, medium: -1, high: 0 },
+    why: {
+      b2b: 'Jedyna platforma, gdzie precyzyjnie wskażesz stanowisko, branżę i wielkość firmy. Droższy klik, ale trafiasz w decydentów, a nie w przypadkowe osoby.',
+      ecommerce: 'Ma sens tylko dla produktów kupowanych służbowo (prezenty firmowe, wyposażenie biur). Dla typowego sklepu koszt kliknięcia jest nieopłacalny.',
+      local: 'Dla usług lokalnych zwykle za drogi; wyjątkiem są usługi dla firm w danym mieście (księgowość, biura, catering firmowy).',
+      education: 'Skuteczny dla szkoleń zawodowych i biznesowych: możesz targetować stanowiska i branże, a Document Ads dobrze promują programy.',
+      saas: 'Trafia w konkretne role (np. dyrektor operacyjny, HR) i pozwala budować listę do remarketingu z odwiedzin profilu firmy.',
+      other: 'Warto rozważyć, jeśli decyzję zakupową podejmuje ktoś w roli zawodowej; w innym wypadku budżet lepiej ulokować gdzie indziej.',
+    },
+    objective: { leads: 'Generowanie leadów (Lead Gen Forms)', sales: 'Konwersje na stronie', awareness: 'Świadomość marki / wyświetlenia wideo', signups: 'Generowanie leadów lub Event Ads' },
+    formats: {
+      leads: ['Lead Gen Forms (formularz w LinkedIn) — zwykle 2–3× wyższa konwersja niż na stronie', 'Document Ads: raport lub checklista jako karuzela PDF', 'Single Image Ads z jedną konkretną liczbą lub wynikiem', 'Thought Leader Ads: promowane posty ekspertów z firmy'],
+      sales: ['Conversation Ads do wąskiej grupy decydentów', 'Single Image Ads z ofertą + remarketing osób z profilu firmy', 'Wideo case study 30–60 s'],
+      awareness: ['Wideo eksperckie 30–90 s', 'Thought Leader Ads z osobistych profili', 'Document Ads z treścią edukacyjną'],
+      signups: ['Event Ads (promocja wydarzenia LinkedIn)', 'Lead Gen Forms z rejestracją', 'Single Image Ads z datą i nazwiskiem prelegenta'],
+    },
+    tips: { low: 'Minimalny sensowny budżet to ok. 1 500–2 000 zł miesięcznie; poniżej tego lepiej działać organicznie z profili osobistych.', medium: 'Zawęź grupę do 20–50 tys. osób, testuj 2 grupy docelowe naraz i wyłączaj rozszerzenie odbiorców.', high: 'Łącz Thought Leader Ads (zaufanie) z Lead Gen Forms (konwersja) i retargetuj widzów wideo 25%+.' },
+  },
+  google: {
+    label: 'Google Ads', sub: 'Search · Performance Max · Display', icon: 'search', color: '#10b981',
+    age: { '18-24': 0, '25-34': 0, '35-44': 0, '45-54': 0, '55+': 0 },
+    budgetPenalty: { low: 0, medium: 0, high: 0 },
+    why: {
+      b2b: 'Przechwytujesz gotowy popyt: ktoś wpisuje „dostawca X” lub „jak rozwiązać Y” i widzi Twoją ofertę. Najwyższa jakość leadów, ograniczona skala.',
+      ecommerce: 'Shopping i Performance Max pokazują produkt z ceną osobom, które aktywnie szukają; to zwykle najbardziej dochodowy kanał sklepu.',
+      local: 'Frazy „usługa + miasto” i rozszerzenia lokalizacji trafiają w klientów z pilną potrzebą; to kanał o najwyższej intencji dla usług lokalnych.',
+      education: 'Wyszukiwania „kurs / szkolenie + temat” to gotowy popyt; Demand Gen pozwala dodatkowo docierać z wideo w YouTube i Discover.',
+      saas: 'Frazy problemowe i „alternatywa dla X” przyciągają osoby porównujące narzędzia; kampanie brandowe chronią przed konkurencją.',
+      other: 'Dociera do osób, które już szukają rozwiązania, więc konwersja jest wyższa niż w social mediach.',
+    },
+    objective: { leads: 'Potencjalni klienci (konwersja: formularz / połączenie)', sales: 'Sprzedaż (Performance Max z feedem produktów)', awareness: 'Świadomość i zasięg (Demand Gen / YouTube)', signups: 'Potencjalni klienci (konwersja: zapis)' },
+    formats: {
+      leads: ['Kampania w sieci wyszukiwania na frazy „usługa + miasto / branża”', 'Zasoby: formularz kontaktowy, połączenia, lokalizacja', 'Performance Max z sygnałami odbiorców (lista klientów, odwiedzający)', 'Remarketing w sieci reklamowej do odwiedzających'],
+      sales: ['Performance Max z feedem produktowym (Shopping)', 'Kampania Shopping standardowa dla bestsellerów', 'Search brandowy + generyczne frazy produktowe', 'Remarketing dynamiczny na porzucone koszyki'],
+      awareness: ['YouTube (In-stream, Shorts) przez Google Ads', 'Demand Gen (Discover, Gmail, YouTube)', 'Display z reklamami responsywnymi'],
+      signups: ['Search na frazy „szkolenie / kurs / webinar + temat”', 'Demand Gen z wideo zapowiadającym', 'Remarketing do osób, które nie dokończyły zapisu'],
+    },
+    tips: { low: 'Skup się wyłącznie na sieci wyszukiwania z dopasowaniem do wyrażenia i ścisłym; codziennie przeglądaj wyszukiwane hasła i dodawaj wykluczenia.', medium: 'Search dla popytu + Performance Max dla skali; śledź konwersje po wartości, nie tylko liczbie.', high: 'Pełna struktura: brand, generyczne, konkurencja, PMax, remarketing. Włącz importy konwersji offline z CRM.' },
+  },
+  tiktok: {
+    label: 'TikTok Ads', sub: 'In-Feed · Spark Ads', icon: 'music', color: '#f43f5e',
+    age: { '18-24': 3, '25-34': 1, '35-44': -1, '45-54': -3, '55+': -4 },
+    budgetPenalty: { low: -1, medium: 0, high: 0 },
+    why: {
+      b2b: 'Rzadko trafia w decydentów; ma sens tylko jako kanał employer brandingu lub dla firm sprzedających młodym przedsiębiorcom.',
+      ecommerce: 'Najtańszy zasięg wideo dla odbiorców do 34 lat; produkty „pokazowe” (kosmetyki, gadżety, moda) sprzedają się tu z Spark Ads i twórcami.',
+      local: 'Dla lokalu z młodą klientelą (gastronomia, beauty, fitness) potrafi zbudować rozpoznawalność w mieście za niewielkie pieniądze.',
+      education: 'Dobry do budowania autorytetu prowadzącego wśród młodszych odbiorców; krótkie mini-lekcje generują tani ruch na lead magnet.',
+      saas: 'Sprawdza się dla narzędzi konsumenckich i twórców; w klasycznym B2B rzadko daje opłacalny koszt rejestracji.',
+      other: 'Warto, jeśli Twoja grupa ma poniżej 35 lat i potrafisz regularnie tworzyć natywne wideo.',
+    },
+    objective: { leads: 'Lead generation (Instant Form)', sales: 'Sprzedaż (Video Shopping Ads / Smart+)', awareness: 'Zasięg / wyświetlenia wideo', signups: 'Lead generation lub Ruch na stronę' },
+    formats: {
+      leads: ['Instant Form (lead w aplikacji)', 'Spark Ads na treściach twórców', 'Wideo 9:16 15–30 s w stylu „POV / problem → efekt”'],
+      sales: ['Video Shopping Ads z katalogiem', 'Spark Ads z UGC i unboxingiem', 'Kampanie Smart+ z automatyczną optymalizacją'],
+      awareness: ['In-Feed wideo z hookiem w pierwszych 2 s', 'Spark Ads', 'Współpraca z twórcami (Creator Marketplace)'],
+      signups: ['In-Feed wideo z CTA „zapisz się”', 'Instant Form', 'Spark Ads z fragmentem materiału'],
+    },
+    tips: { low: 'Zamiast płatnych kampanii zacznij od 3 organicznych wideo tygodniowo i promuj tylko te, które same zdobyły zasięg.', medium: 'Testuj 5+ kreacji tygodniowo; TikTok „zużywa” kreacje szybciej niż Meta.', high: 'Łącz Spark Ads od twórców z kampaniami Smart+ i remarketingiem do widzów wideo.' },
+  },
+  youtube: {
+    label: 'YouTube Ads', sub: 'In-stream · Shorts · Bumper', icon: 'youtube', color: '#f59e0b',
+    age: { '18-24': 1, '25-34': 0, '35-44': 0, '45-54': 0, '55+': 1 },
+    budgetPenalty: { low: -1, medium: 0, high: 0 },
+    why: {
+      b2b: 'Dobre miejsce na dłuższe wideo eksperckie i remarketing do osób, które były na stronie; samodzielnie rzadko generuje leady.',
+      ecommerce: 'Video Action Campaigns z feedem produktów pozwalają sprzedawać z poziomu wideo, a Shorts dają tani zasięg.',
+      local: 'Zwykle zbyt szeroki zasięg jak na obszar obsługi; ma sens tylko z precyzyjnym geotargetowaniem i dla droższych usług.',
+      education: 'Naturalne środowisko dla treści edukacyjnych: fragment wykładu jako reklama buduje autorytet i tani remarketing.',
+      saas: 'Wideo z demo produktu i remarketing do widzów to sprawdzony sposób, by wyjaśnić złożone narzędzie.',
+      other: 'Najtańszy sposób, by pokazać dłuższą historię marki osobom w każdym wieku.',
+    },
+    objective: { leads: 'Konwersje (Video Action Campaigns)', sales: 'Sprzedaż (Video Action + feed produktów)', awareness: 'Zasięg i wyświetlenia wideo', signups: 'Konwersje → strona zapisu' },
+    formats: {
+      leads: ['In-stream skippable 30–60 s z CTA do formularza', 'Remarketing do widzów, którzy obejrzeli 50%+', 'Video Action Campaigns'],
+      sales: ['Video Action Campaigns z feedem produktowym', 'Shorts Ads 9:16', 'Remarketing produktowy'],
+      awareness: ['Bumper Ads 6 s (zasięg + częstotliwość)', 'In-stream non-skippable 15 s', 'Shorts Ads'],
+      signups: ['In-stream z fragmentem wykładu / szkolenia', 'Video Action Campaigns → strona zapisu', 'Remarketing do widzów'],
+    },
+    tips: { low: 'Użyj YouTube tylko jako remarketingu do osób ze strony; kampanie zasięgowe zjedzą budżet bez konwersji.', medium: 'Jedno wideo 30–45 s w trzech wariantach hooka; mierz koszt widza, który obejrzał 50%+.', high: 'Sekwencje wideo (najpierw historia, potem oferta) i połączenie z Demand Gen.' },
+  },
+};
+
+const FUNNEL_STAGES = {
+  tofu: { label: 'Góra lejka (TOFU)', title: 'Zasięg i uwaga', desc: 'Docierasz do osób, które Cię nie znają. Celem jest zatrzymanie uwagi i zbudowanie pierwszego skojarzenia.',
+          tactics: ['Wideo edukacyjne lub rozrywkowe do zimnych odbiorców', 'Kampanie zasięgowe i wyświetleń wideo', 'Szerokie targetowanie, lookalike, zainteresowania'], kpi: 'CPM, zasięg, odsetek obejrzeń wideo, CTR' },
+  mofu: { label: 'Środek lejka (MOFU)', title: 'Zaufanie i rozważanie', desc: 'Odbiorca już Cię kojarzy. Dostarczasz dowody, edukujesz i zbierasz sygnały zainteresowania.',
+          tactics: ['Remarketing do osób po interakcji (wideo, profil, strona)', 'Case studies, opinie, porównania, lead magnety', 'Kampanie ruchu na stronę i wyświetleń strony docelowej'], kpi: 'CPC, czas na stronie, koszt mikrokonwersji (np. pobrania)' },
+  bofu: { label: 'Dół lejka (BOFU)', title: 'Konwersja', desc: 'Osoby gotowe do decyzji. Jasna oferta, usunięcie obiekcji i bezpośrednie wezwanie do działania.',
+          tactics: ['Remarketing do odwiedzających ofertę, koszyk, cennik', 'Oferta, gwarancja, pilność, bezpośrednie CTA', 'Kampanie konwersji, Lead Ads, Shopping, Search'], kpi: 'CPL / CPA, ROAS, współczynnik konwersji' },
+};
+
+const COMPETITION_SOURCES = {
+  meta: { label: 'Biblioteka Reklam Meta', url: 'https://www.facebook.com/ads/library/', steps: [
+    'Wpisz nazwę konkurenta, ustaw kraj Polska i filtr „Aktywne”.',
+    'Sprawdź datę startu: reklamy działające ponad 30 dni prawdopodobnie przynoszą wyniki.',
+    'Zapisz hooki z pierwszych 3 sekund wideo i pierwsze zdanie tekstu reklamy.',
+    'Policz, ile wariantów kreacji testują jednocześnie i jakie formaty dominują.',
+    'Kliknij w reklamy i zobacz strony docelowe: landing, lead magnet, sklep czy formularz.',
+  ] },
+  google: { label: 'Google Ads Transparency Center', url: 'https://adstransparency.google.com/', steps: [
+    'Wyszukaj domenę konkurenta i przefiltruj po formacie (tekst, grafika, wideo).',
+    'Zanotuj obietnice z nagłówków: cena, czas, gwarancja, „bezpłatny…”.',
+    'Wpisz w Google swoje najważniejsze frazy i sprawdź, kto się na nich reklamuje.',
+    'Zobacz, czy konkurenci licytują na Twoją markę.',
+  ] },
+  linkedin: { label: 'Strona firmowa LinkedIn → zakładka „Posty” → „Reklamy”', url: 'https://www.linkedin.com/', steps: [
+    'Otwórz profil firmowy konkurenta i przejdź do zakładki z reklamami.',
+    'Sprawdź, czy promują treści ekspertów (Thought Leader Ads) czy grafiki firmowe.',
+    'Zanotuj, jakie lead magnety i wydarzenia promują.',
+  ] },
+  tiktok: { label: 'TikTok Creative Center', url: 'https://ads.tiktok.com/business/creativecenter/', steps: [
+    'Przejrzyj najlepsze reklamy w Twojej branży i regionie (zakładka Top Ads).',
+    'Zapisz struktury wideo: hook → problem → pokaz → CTA.',
+    'Sprawdź trendy dźwięków i hasztagów w Twojej kategorii.',
+  ] },
+  youtube: { label: 'Google Ads Transparency Center (wideo) + kanały konkurencji', url: 'https://adstransparency.google.com/', steps: [
+    'Wyfiltruj reklamy wideo konkurenta i obejrzyj pierwsze 5 sekund każdej.',
+    'Zobacz, które filmy na ich kanale mają nieproporcjonalnie dużo wyświetleń (to zwykle te promowane).',
+  ] },
+};
+
+const PLAN_TEMPLATE = [
+  { weeks: 'Tydzień 1–2', title: 'Fundamenty i pomiar', items: ['Wdrożenie pikseli, konwersji i (jeśli dotyczy) feedu produktowego', 'Przygotowanie 3–4 kreacji na kanał w formatach 9:16 i 1:1', 'Strona docelowa dopasowana do celu (jedno CTA, szybkie ładowanie, mobile)'] },
+  { weeks: 'Tydzień 3–6', title: 'Testy', items: ['Uruchomienie kampanii z podziałem na zimny ruch i remarketing', 'Test 2–3 grup odbiorców i 3–4 hooków kreacji na grupę', 'Cotygodniowa ocena: wyłączanie najsłabszych 30% kreacji'] },
+  { weeks: 'Tydzień 7–10', title: 'Skalowanie', items: ['Zwiększanie budżetu zwycięskich kampanii o 20% co 3–4 dni', 'Dodanie nowych wariantów najlepszych kreacji', 'Uruchomienie kolejnego etapu lejka lub kanału'] },
+  { weeks: 'Tydzień 11–12', title: 'Optymalizacja i raport', items: ['Analiza kosztu celu w podziale na kanał, kreację i grupę', 'Decyzja o alokacji budżetu na kolejny kwartał', 'Aktualizacja profilu grupy docelowej o wnioski z danych'] },
+];
+
+/* =====================================================================
+   2. SILNIK — z danych formularza buduje model raportu
+   ===================================================================== */
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmtPln = (n) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(n);
+const splitList = (s) => (s || '').split(/[,;\n]+/).map(x => x.trim()).filter(Boolean);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function scoreChannel(key, f) {
+  const ch = CHANNELS[key];
+  const ind = INDUSTRIES[f.industry];
+  const goal = GOALS[f.goal];
+  const ageAvg = f.ages.reduce((s, a) => s + ch.age[a], 0) / f.ages.length;
+  // 5 = neutralnie; dopasowanie branży, celu i wieku ważone tak, by skala 1–10 różnicowała kanały
+  const raw = 5 + (ind.channel[key] + goal.channel[key] + ageAvg) * 0.6 + ch.budgetPenalty[f.budget];
+  return clamp(Math.round(raw), 1, 10);
+}
+
+function splitBudget(items, total) {
+  // proporcjonalnie do dopasowania (wykładniczo, by wzmocnić różnice), zaokrąglone do 5%
+  const weights = items.map(i => Math.pow(i.score, 1.6));
+  const sum = weights.reduce((a, b) => a + b, 0);
+  let shares = weights.map(w => Math.round((w / sum) * 20) * 5);
+  let diff = 100 - shares.reduce((a, b) => a + b, 0);
+  let idx = 0;
+  while (diff !== 0) { // korekta, by suma wynosiła 100
+    const i = shares.indexOf(Math.max(...shares));
+    shares[i] += diff > 0 ? 5 : -5; diff += diff > 0 ? -5 : 5;
+    if (++idx > 40) break;
+  }
+  return items.map((it, i) => ({ ...it, share: shares[i], amount: Math.round(total * shares[i] / 100) }));
+}
+
+function buildFunnel(f, total) {
+  const base = { ...GOALS[f.goal].funnel };
+  const ind = INDUSTRIES[f.industry].funnel;
+  const bud = BUDGETS[f.budget].funnel;
+  let tofu = base.tofu + ind.tofu + bud.tofu;
+  let mofu = base.mofu + ind.mofu + bud.mofu;
+  let bofu = base.bofu + ind.bofu + bud.bofu;
+  if (f.goal === 'awareness') { tofu = Math.max(tofu, 50); }
+  tofu = clamp(tofu, 10, 70); mofu = clamp(mofu, 10, 60); bofu = clamp(bofu, 10, 70);
+  const s = tofu + mofu + bofu;
+  const r = { tofu: Math.round(tofu / s * 20) * 5, mofu: Math.round(mofu / s * 20) * 5 };
+  r.bofu = 100 - r.tofu - r.mofu;
+  return ['tofu', 'mofu', 'bofu'].map(k => ({ key: k, ...FUNNEL_STAGES[k], pct: r[k], amount: Math.round(total * r[k] / 100) }));
+}
+
+function detectLinks(text) {
+  const urls = (text.match(/https?:\/\/[^\s)]+/gi) || []);
+  const found = new Set();
+  urls.forEach(u => {
+    const l = u.toLowerCase();
+    if (l.includes('facebook.com/ads/library') || l.includes('facebook.com') || l.includes('instagram.com')) found.add('meta');
+    else if (l.includes('adstransparency.google') || l.includes('google.')) found.add('google');
+    else if (l.includes('linkedin.com')) found.add('linkedin');
+    else if (l.includes('tiktok.com')) found.add('tiktok');
+    else if (l.includes('youtube.com') || l.includes('youtu.be')) found.add('youtube');
+    else found.add('site');
+  });
+  return { urls, found };
+}
+
+function generate(f) {
+  const ind = INDUSTRIES[f.industry];
+  const goal = GOALS[f.goal];
+  const bud = BUDGETS[f.budget];
+  const total = f.budgetPln > 0 ? f.budgetPln : bud.defaultPln;
+  const challenges = splitList(f.challenges);
+  const interests = splitList(f.interests);
+
+  /* --- Kanały --- */
+  const scored = f.channels.map(k => ({ key: k, ...CHANNELS[k], score: scoreChannel(k, f) }))
+    .sort((a, b) => b.score - a.score);
+  const channels = splitBudget(scored, total).map(c => ({
+    key: c.key, label: c.label, sub: c.sub, icon: c.icon, color: c.color, score: c.score, share: c.share, amount: c.amount,
+    why: c.why[f.industry], objective: c.objective[f.goal], formats: c.formats[f.goal], tip: c.tips[f.budget],
+  }));
+  if (f.industry === 'local' && channels.find(c => c.key === 'meta')) {
+    channels.find(c => c.key === 'meta').formats = ['Kampania „Wiadomości” (Messenger / WhatsApp) z geotargetowaniem 5–15 km', ...CHANNELS.meta.formats[f.goal].slice(0, 3)];
+  }
+  const unselected = Object.keys(CHANNELS).filter(k => !f.channels.includes(k)).map(k => ({ key: k, score: scoreChannel(k, f) })).sort((a, b) => b.score - a.score);
+  const suggested = unselected.length && unselected[0].score >= 7 ? { key: unselected[0].key, label: CHANNELS[unselected[0].key].label, score: unselected[0].score, why: CHANNELS[unselected[0].key].why[f.industry] } : null;
+
+  /* --- Alerty --- */
+  const alerts = [];
+  if (f.channels.length > bud.maxChannels) {
+    const top = channels.slice(0, bud.maxChannels).map(c => c.label).join(' i ');
+    alerts.push({ type: 'warn', text: `Za dużo kanałów jak na ten budżet. Zacznij od ${top} (najwyższe dopasowanie), a pozostałe włącz po pierwszych wynikach.` });
+  }
+  if (f.channels.includes('linkedin') && f.budget === 'low') alerts.push({ type: 'warn', text: 'LinkedIn Ads przy niskim budżecie: koszt kliknięcia 15–30 zł oznacza kilkadziesiąt kliknięć miesięcznie. Rozważ działania organiczne z profili osobistych, a płatne dopiero przy większym budżecie.' });
+  if (f.channels.includes('tiktok') && f.ages.every(a => ['45-54', '55+'].includes(a))) alerts.push({ type: 'warn', text: 'TikTok Ads a grupa 45+: na tej platformie dotrzesz głównie do młodszych odbiorców. Sprawdź, czy to na pewno właściwy kanał dla tej grupy.' });
+  if (f.industry === 'ecommerce' && !f.channels.includes('meta')) alerts.push({ type: 'info', text: 'W e-commerce Meta Ads (kampanie katalogowe i remarketing dynamiczny) to zwykle podstawa sprzedaży. Warto dodać ten kanał.' });
+  if (f.industry === 'b2b' && !f.channels.includes('linkedin') && f.ages.some(a => ['25-34', '35-44', '45-54'].includes(a)) && f.budget !== 'low') alerts.push({ type: 'info', text: 'W B2B LinkedIn Ads pozwala targetować stanowiska i branże; przy średnim lub wysokim budżecie to naturalne uzupełnienie.' });
+  if (f.industry === 'b2b' && f.goal === 'sales') alerts.push({ type: 'info', text: 'Sprzedaż bezpośrednia z reklamy w B2B rzadko działa na zimnym ruchu. Rozważ cel „leady” i domykanie sprzedaży rozmową lub ofertą.' });
+  if (f.industry === 'local' && (f.channels.includes('linkedin') || f.channels.includes('youtube'))) alerts.push({ type: 'info', text: 'Dla usług lokalnych pilnuj precyzyjnego targetowania geograficznego w każdym kanale; poza obszarem obsługi każdy wyświetlony baner to strata.' });
+  if (!f.competition.trim()) alerts.push({ type: 'info', text: 'Nie podano danych o konkurencji. Dodaj 2–3 linki z Biblioteki Reklam Meta, a sekcja analizy konkurencji będzie bardziej konkretna.' });
+  if (!challenges.length) alerts.push({ type: 'info', text: 'Brak wpisanych wyzwań grupy docelowej. Komunikaty będą trafniejsze, gdy nazwiesz 2–3 konkretne problemy odbiorców.' });
+  if (!alerts.length) alerts.push({ type: 'ok', text: 'Dobór kanałów, cel i budżet są ze sobą spójne. Możesz przejść do planu kampanii.' });
+
+  /* --- Grupa docelowa --- */
+  const platforms = [...new Set(f.ages.flatMap(a => AGE_PROFILE[a].platforms))];
+  const ageLabel = f.ages.length === AGES.length ? 'w każdym wieku' : `w wieku ${f.ages.join(', ').replace(/-/g, '–')}`;
+  const audience = {
+    summary: `${f.who} ${ageLabel}. ${interests.length ? `Interesują ich: ${interests.join(', ')}. ` : ''}Proces decyzyjny w tej branży jest ${ind.cycle}. Najczęstszy impuls do działania to ${ind.trigger}.`,
+    insights: f.ages.map(a => ({ age: a.replace('-', '–'), text: AGE_PROFILE[a].insight })),
+    platforms,
+    challenges: challenges.length ? challenges : [ind.trigger],
+    journey: [
+      `Świadomość: odbiorca natrafia na ${f.name} w ${platforms.slice(0, 2).join(' lub ')} przez treść, która nazywa jego problem.`,
+      `Rozważanie: szuka dowodów (${ind.proof}) i porównuje z alternatywami.`,
+      `Decyzja: potrzebuje jednego jasnego kroku: ${ind.cta.split(' · ')[0].toLowerCase()}.`,
+    ],
+  };
+
+  /* --- Komunikacja --- */
+  const c1 = challenges[0] || ind.trigger;
+  const c2 = challenges[1] || challenges[0] || 'brak czasu';
+  const messages = [
+    { angle: 'Problem → rozwiązanie', text: `Dla ${f.who}, którzy mierzą się z „${c1}”: ${f.name} pokazuje konkretną drogę do rozwiązania, bez obietnic bez pokrycia.` },
+    { angle: 'Dowód', text: `Zamiast mówić, że jesteśmy dobrzy, pokazujemy: ${ind.proof}. Każda kreacja zawiera jeden mierzalny efekt.` },
+    { angle: 'Obiekcja', text: `Najczęstsza wątpliwość odbiorcy („${c2}”) jest adresowana wprost w kreacji i na stronie docelowej, zanim ją wypowie.` },
+  ];
+  const comms = { tone: ind.tone, adjust: goal.adjust, messages, pillars: ind.pillars, dos: ind.dos, donts: ind.donts, cta: ind.cta };
+
+  /* --- Lejek --- */
+  const funnel = buildFunnel(f, total);
+  const funnelNote = bud.note;
+
+  /* --- Konkurencja --- */
+  const links = detectLinks(f.competition);
+  const sourceKeys = new Set(['meta', 'google', ...f.channels, ...[...links.found].filter(k => COMPETITION_SOURCES[k])]);
+  const competition = {
+    sources: [...sourceKeys].filter(k => COMPETITION_SOURCES[k]).map(k => ({ key: k, ...COMPETITION_SOURCES[k], matched: links.found.has(k) })),
+    hypotheses: ind.hypotheses,
+    checklist: ['Formaty: wideo, grafika, karuzela — co dominuje?', 'Oferta wejścia: co dają za darmo lub jako pierwszy krok?', 'Ton: ekspercki, lekki, ofertowy?', 'Strona docelowa: ile pól w formularzu, czy jest cennik?', 'Czas życia reklam: które działają najdłużej?', 'Luki: czego nikt nie komunikuje, a Wasi klienci o to pytają?'],
+    notes: f.competition.trim(),
+    urls: links.urls,
+  };
+
+  /* --- Plan 90 dni --- */
+  const plan = PLAN_TEMPLATE.map(p => ({ ...p, items: [...p.items] }));
+  if (f.goal === 'signups') plan[1].items.push('Sekwencja przypomnień (e-mail / SMS) po zapisie, aby zwiększyć frekwencję');
+  if (f.goal === 'sales') plan[0].items.push('Weryfikacja feedu produktowego i śledzenia wartości zakupu');
+  if (f.goal === 'leads') plan[0].items.push('Proces obsługi leadów: kto i w jakim czasie oddzwania');
+  if (f.goal === 'awareness') plan[3].items.push('Badanie wzrostu świadomości: wyszukiwania marki, ankieta, ruch bezpośredni');
+
+  const next = [
+    `Zatwierdź główny cel („${goal.label}”) i jedną liczbę, którą będziesz mierzyć co tydzień.`,
+    `Przygotuj kreacje w oparciu o 3 kąty komunikacji z tej strategii i filary treści.`,
+    `Uruchom ${channels[0].label} jako kanał wiodący; kolejne dodawaj po 2–3 tygodniach danych.`,
+    `Przeprowadź analizę konkurencji według checklisty i uzupełnij hipotezy.`,
+  ];
+
+  return {
+    meta: { name: f.name, industry: ind.label, goal: goal.label, budget: bud.label, total, ages: f.ages, who: f.who, channels: channels.map(c => c.label), date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }), exactBudget: f.budgetPln > 0 },
+    alerts, audience, comms, channels, suggested, funnel, funnelNote, competition, plan, kpis: goal.kpis, bench: ind.kpiBench, next,
+  };
+}
+
+/* =====================================================================
+   3. RENDER — model raportu → HTML
+   ===================================================================== */
+
+function sectionHead(icon, title, lead) {
+  return `<div class="flex items-start gap-4 mb-6">
+    <div class="h-10 w-10 shrink-0 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
+    <div><h2 class="font-display text-xl font-semibold text-slate-900">${title}</h2>${lead ? `<p class="text-sm text-slate-500 mt-0.5">${lead}</p>` : ''}</div>
+  </div>`;
+}
+const li = (arr, icon = 'check', cls = 'text-indigo-600') => arr.map(x => `<li class="flex gap-2.5 text-sm text-slate-700"><i data-lucide="${icon}" class="w-4 h-4 mt-0.5 shrink-0 ${cls}"></i><span>${esc(x)}</span></li>`).join('');
+const scoreBar = (n) => `<span class="score" aria-label="Dopasowanie ${n} na 10">${Array.from({ length: 10 }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
+
+function renderReport(r) {
+  const m = r.meta;
+  const alertStyle = { warn: ['bg-amber-50 border-amber-200 text-amber-900', 'alert-triangle', 'text-amber-600'], info: ['bg-sky-50 border-sky-200 text-sky-900', 'info', 'text-sky-600'], ok: ['bg-emerald-50 border-emerald-200 text-emerald-900', 'check-circle-2', 'text-emerald-600'] };
+  const funnelWidths = { tofu: '100%', mofu: '78%', bofu: '56%' };
+  const funnelColors = { tofu: 'bg-indigo-400', mofu: 'bg-indigo-600', bofu: 'bg-indigo-800' };
+
+  return `
+  <!-- Pasek akcji -->
+  <div class="no-print sticky top-16 z-20 -mx-4 sm:mx-0 px-4 sm:px-0 py-3 bg-slate-50/90 backdrop-blur">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <button type="button" id="btn-edit" class="btn-ghost text-sm"><i data-lucide="pencil" class="w-4 h-4"></i>Edytuj dane</button>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" id="btn-copy" class="btn-ghost text-sm"><i data-lucide="copy" class="w-4 h-4"></i>Kopiuj podsumowanie</button>
+        <button type="button" id="btn-print" class="btn-primary text-sm !py-2.5 !px-4"><i data-lucide="printer" class="w-4 h-4"></i>Drukuj / zapisz PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-6 mt-4 fade-in">
+
+    <!-- Nagłówek raportu -->
+    <div class="card overflow-hidden">
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-800 text-white p-6 sm:p-8">
+        <p class="text-xs font-semibold tracking-widest uppercase text-indigo-200 mb-2">Wstępna strategia marketingowa</p>
+        <h2 class="font-display text-2xl sm:text-3xl font-semibold">${esc(m.name)}</h2>
+        <p class="text-indigo-100 mt-2 text-sm">${esc(m.industry)} · Cel: ${esc(m.goal)} · ${esc(m.date)}</p>
+      </div>
+      <div class="p-6 sm:p-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <div><div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Grupa docelowa</div><div class="font-medium text-slate-800">${esc(m.who)}</div><div class="text-slate-500">${m.ages.map(a => a.replace('-', '–')).join(', ')}</div></div>
+        <div><div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Cel</div><div class="font-medium text-slate-800">${esc(m.goal)}</div></div>
+        <div><div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Budżet miesięczny</div><div class="font-medium text-slate-800">${fmtPln(m.total)}${m.exactBudget ? '' : ' <span class="text-slate-400 font-normal">(szacunek)</span>'}</div><div class="text-slate-500">${esc(m.budget)}</div></div>
+        <div><div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Kanały</div><div class="flex flex-wrap gap-1.5">${m.channels.map(c => `<span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">${esc(c)}</span>`).join('')}</div></div>
+      </div>
+    </div>
+
+    <!-- Alerty -->
+    <div class="grid gap-2">
+      ${r.alerts.map(a => { const [cls, ic, icc] = alertStyle[a.type]; return `<div class="flex gap-3 border rounded-xl px-4 py-3 text-sm ${cls}"><i data-lucide="${ic}" class="w-5 h-5 shrink-0 ${icc}"></i><span>${esc(a.text)}</span></div>`; }).join('')}
+    </div>
+
+    <!-- 1. Profil grupy docelowej -->
+    <div class="card p-6 sm:p-8">
+      ${sectionHead('users', '1. Profil grupy docelowej', 'Kim są odbiorcy, gdzie są i co ich napędza')}
+      <p class="text-slate-700 leading-relaxed mb-6">${esc(r.audience.summary)}</p>
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900 mb-3">Insighty pokoleniowe</h3>
+          <div class="grid gap-3">${r.audience.insights.map(i => `<div class="flex gap-3 text-sm"><span class="shrink-0 h-7 min-w-[3.4rem] px-2 grid place-items-center rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs">${i.age}</span><p class="text-slate-700">${esc(i.text)}</p></div>`).join('')}</div>
+        </div>
+        <div class="grid gap-5">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 mb-2">Gdzie ich spotkasz</h3>
+            <div class="flex flex-wrap gap-1.5">${r.audience.platforms.map(p => `<span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium">${esc(p)}</span>`).join('')}</div>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 mb-2">Wyzwania do zaadresowania w komunikacji</h3>
+            <ul class="grid gap-1.5">${li(r.audience.challenges, 'flame', 'text-rose-500')}</ul>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 mb-2">Ścieżka odbiorcy</h3>
+            <ol class="grid gap-1.5">${r.audience.journey.map((j, i) => `<li class="flex gap-2.5 text-sm text-slate-700"><span class="shrink-0 h-5 w-5 grid place-items-center rounded-full bg-indigo-600 text-white text-[11px] font-bold">${i + 1}</span><span>${esc(j)}</span></li>`).join('')}</ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Komunikacja -->
+    <div class="card p-6 sm:p-8">
+      ${sectionHead('message-square-quote', '2. Strategia komunikacji i ton głosu', 'Jak mówić, żeby ta grupa słuchała')}
+      <div class="rounded-xl bg-indigo-50 border border-indigo-100 p-5 mb-6">
+        <div class="text-xs uppercase tracking-wide text-indigo-500 font-semibold mb-1">Ton głosu</div>
+        <div class="font-display text-lg font-semibold text-indigo-900">${esc(r.comms.tone.name)}</div>
+        <p class="text-sm text-indigo-900/80 mt-1">${esc(r.comms.tone.desc)}</p>
+        <p class="text-sm text-indigo-900/80 mt-2"><b>Dopasowanie do celu:</b> ${esc(r.comms.adjust)}</p>
+      </div>
+      <h3 class="text-sm font-semibold text-slate-900 mb-3">Trzy kąty komunikacji</h3>
+      <div class="grid md:grid-cols-3 gap-3 mb-6">
+        ${r.comms.messages.map(msg => `<div class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-semibold text-indigo-600 mb-1.5">${esc(msg.angle)}</div><p class="text-sm text-slate-700">${esc(msg.text)}</p></div>`).join('')}
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div><h3 class="text-sm font-semibold text-slate-900 mb-2">Filary treści</h3><ul class="grid gap-1.5">${li(r.comms.pillars, 'layers')}</ul></div>
+        <div><h3 class="text-sm font-semibold text-emerald-700 mb-2">Rób</h3><ul class="grid gap-1.5">${li(r.comms.dos, 'check', 'text-emerald-600')}</ul></div>
+        <div><h3 class="text-sm font-semibold text-rose-700 mb-2">Unikaj</h3><ul class="grid gap-1.5">${li(r.comms.donts, 'x', 'text-rose-500')}</ul></div>
+      </div>
+      <div class="mt-6 pt-5 border-t border-slate-100 text-sm"><span class="font-semibold text-slate-900">Rekomendowane wezwania do działania:</span> <span class="text-slate-700">${esc(r.comms.cta)}</span></div>
+    </div>
+
+    <!-- 3. Narzędzia -->
+    <div class="card p-6 sm:p-8 print-break">
+      ${sectionHead('layout-grid', '3. Dobór narzędzi reklamowych', 'Dlaczego te kanały, z jakim celem kampanii i w jakich formatach')}
+      <div class="grid gap-4">
+        ${r.channels.map((c, i) => `
+        <div class="rounded-xl border border-slate-200 p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl grid place-items-center text-white" style="background:${c.color}"><i data-lucide="${c.icon}" class="w-5 h-5"></i></div>
+              <div><div class="font-display font-semibold text-slate-900">${esc(c.label)} ${i === 0 ? '<span class="ml-1 px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-semibold uppercase tracking-wide align-middle">kanał wiodący</span>' : ''}</div><div class="text-xs text-slate-500">${esc(c.sub)}</div></div>
+            </div>
+            <div class="text-right"><div class="text-xs text-slate-500 mb-1">Dopasowanie ${c.score}/10</div>${scoreBar(c.score)}</div>
+          </div>
+          <p class="text-sm text-slate-700 mb-4">${esc(c.why)}</p>
+          <div class="grid md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Cel kampanii</div>
+              <div class="text-slate-800 font-medium mb-3">${esc(c.objective)}</div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Wskazówka dla Twojego budżetu</div>
+              <div class="text-slate-700">${esc(c.tip)}</div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Rekomendowane formaty</div>
+              <ul class="grid gap-1.5">${li(c.formats, 'play', 'text-indigo-600')}</ul>
+            </div>
+          </div>
+        </div>`).join('')}
+        ${r.suggested ? `<div class="rounded-xl border border-dashed border-indigo-300 bg-indigo-50/50 p-5 text-sm"><div class="flex items-center gap-2 font-semibold text-indigo-900 mb-1"><i data-lucide="lightbulb" class="w-4 h-4"></i>Rozważ dodatkowo: ${esc(r.suggested.label)} (dopasowanie ${r.suggested.score}/10)</div><p class="text-indigo-900/80">${esc(r.suggested.why)}</p></div>` : ''}
+      </div>
+    </div>
+
+    <!-- 4. Budżet i lejek -->
+    <div class="card p-6 sm:p-8">
+      ${sectionHead('funnel', '4. Podział budżetu i lejek marketingowy', `Miesięczny budżet: ${fmtPln(m.total)}${m.exactBudget ? '' : ' (szacunek dla wybranego przedziału)'}`)}
+      <div class="grid lg:grid-cols-5 gap-8">
+        <div class="lg:col-span-2">
+          <h3 class="text-sm font-semibold text-slate-900 mb-3">Etapy lejka</h3>
+          <div class="grid gap-1.5">
+            ${r.funnel.map(s => `<div class="mx-auto" style="width:${funnelWidths[s.key]}"><div class="funnel-band ${funnelColors[s.key]} text-white px-6 py-3 text-center"><div class="text-xs uppercase tracking-wide text-white/80">${esc(s.label)}</div><div class="font-display text-xl font-semibold leading-tight">${s.pct}%</div><div class="text-xs text-white/90">${fmtPln(s.amount)}</div></div></div>`).join('')}
+          </div>
+          <h3 class="text-sm font-semibold text-slate-900 mt-8 mb-3">Podział na kanały</h3>
+          <div class="h-4 w-full rounded-full overflow-hidden flex bg-slate-100">${r.channels.map(c => `<div style="width:${c.share}%;background:${c.color}" title="${esc(c.label)} ${c.share}%"></div>`).join('')}</div>
+          <ul class="mt-3 grid gap-1.5 text-sm">${r.channels.map(c => `<li class="flex items-center justify-between gap-3"><span class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full" style="background:${c.color}"></span>${esc(c.label)}</span><span class="text-slate-600"><b class="text-slate-900">${c.share}%</b> · ${fmtPln(c.amount)}</span></li>`).join('')}</ul>
+          <p class="text-xs text-slate-500 mt-4">${esc(r.funnelNote)}</p>
+        </div>
+        <div class="lg:col-span-3 grid gap-4">
+          ${r.funnel.map(s => `<div class="rounded-xl border border-slate-200 p-4"><div class="flex items-center justify-between gap-3 mb-1"><div class="font-semibold text-slate-900">${esc(s.label)} <span class="text-slate-400 font-normal">· ${esc(s.title)}</span></div><div class="text-sm font-semibold text-indigo-700">${s.pct}% · ${fmtPln(s.amount)}</div></div><p class="text-sm text-slate-600 mb-3">${esc(s.desc)}</p><ul class="grid gap-1 mb-3">${li(s.tactics, 'chevron-right', 'text-slate-400')}</ul><div class="text-xs text-slate-500"><b class="text-slate-700">Mierz:</b> ${esc(s.kpi)}</div></div>`).join('')}
+          <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm">
+            <div class="font-semibold text-slate-900 mb-2 flex items-center gap-2"><i data-lucide="gauge" class="w-4 h-4 text-indigo-600"></i>Kluczowe wskaźniki dla celu „${esc(m.goal)}”</div>
+            <ul class="grid gap-1">${li(r.kpis, 'bar-chart-3', 'text-indigo-600')}</ul>
+            <p class="text-xs text-slate-500 mt-3">${esc(r.bench)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Konkurencja -->
+    <div class="card p-6 sm:p-8 print-break">
+      ${sectionHead('binoculars', '5. Analiza konkurencji', 'Na co zwracać uwagę w bibliotekach reklam')}
+      ${r.competition.notes ? `<div class="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-6 text-sm"><div class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Twoje notatki o konkurencji</div><p class="text-slate-700 whitespace-pre-line">${esc(r.competition.notes)}</p>${r.competition.urls.length ? `<div class="mt-2 flex flex-wrap gap-2">${r.competition.urls.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener" class="text-xs text-indigo-700 underline underline-offset-2 break-all">${esc(u.length > 60 ? u.slice(0, 60) + '…' : u)}</a>`).join('')}</div>` : ''}</div>` : ''}
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        ${r.competition.sources.map(s => `<div class="rounded-xl border ${s.matched ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200'} p-4"><div class="flex items-start justify-between gap-2 mb-2"><div class="font-semibold text-slate-900 text-sm">${esc(s.label)}</div>${s.matched ? '<span class="text-[10px] font-semibold uppercase tracking-wide text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full shrink-0">z Twojego linku</span>' : ''}</div><a class="text-xs text-indigo-600 underline underline-offset-2 break-all" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a><ol class="mt-3 grid gap-1.5">${s.steps.map((st, i) => `<li class="flex gap-2 text-sm text-slate-700"><span class="shrink-0 text-xs font-bold text-slate-400 w-4 pt-0.5">${i + 1}.</span><span>${esc(st)}</span></li>`).join('')}</ol></div>`).join('')}
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div><h3 class="text-sm font-semibold text-slate-900 mb-2">Checklista analizy</h3><ul class="grid gap-1.5">${li(r.competition.checklist, 'square-check', 'text-slate-400')}</ul></div>
+        <div><h3 class="text-sm font-semibold text-slate-900 mb-2">Hipotezy do sprawdzenia w Twojej branży</h3><ul class="grid gap-1.5">${li(r.competition.hypotheses, 'help-circle', 'text-indigo-600')}</ul></div>
+      </div>
+    </div>
+
+    <!-- 6. Plan 90 dni -->
+    <div class="card p-6 sm:p-8">
+      ${sectionHead('calendar-range', '6. Plan kampanii na 90 dni', 'Od wdrożenia pomiaru do decyzji budżetowych')}
+      <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+        ${r.plan.map(p => `<div class="rounded-xl border border-slate-200 p-4"><div class="text-xs font-semibold text-indigo-600 uppercase tracking-wide">${esc(p.weeks)}</div><div class="font-display font-semibold text-slate-900 mb-2">${esc(p.title)}</div><ul class="grid gap-1.5">${li(p.items, 'circle-dot', 'text-slate-400')}</ul></div>`).join('')}
+      </div>
+      <div class="mt-6 pt-6 border-t border-slate-100">
+        <h3 class="text-sm font-semibold text-slate-900 mb-2">Następne kroki</h3>
+        <ol class="grid gap-1.5">${r.next.map((n, i) => `<li class="flex gap-2.5 text-sm text-slate-700"><span class="shrink-0 h-5 w-5 grid place-items-center rounded-full bg-indigo-600 text-white text-[11px] font-bold">${i + 1}</span><span>${esc(n)}</span></li>`).join('')}</ol>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-400 text-center pb-4">Raport wygenerowany ${esc(m.date)} · Rekomendacje wstępne, oparte na regułach; przed wdrożeniem zweryfikuj je w danych i testach.</p>
+  </div>`;
+}
+
+/* =====================================================================
+   4. TEKST — model raportu → tekst do schowka
+   ===================================================================== */
+
+function reportToText(r) {
+  const m = r.meta; const L = [];
+  const h = (t) => { L.push(''); L.push(t.toUpperCase()); L.push('-'.repeat(t.length)); };
+  L.push(`STRATEGIA MARKETINGOWA: ${m.name}`);
+  L.push(`${m.industry} | Cel: ${m.goal} | Budżet: ${fmtPln(m.total)}/mies. | ${m.date}`);
+  L.push(`Grupa: ${m.who} (${m.ages.join(', ')})`);
+  L.push(`Kanały: ${m.channels.join(', ')}`);
+  if (r.alerts.length) { h('Uwagi'); r.alerts.forEach(a => L.push(`! ${a.text}`)); }
+  h('1. Profil grupy docelowej'); L.push(r.audience.summary); r.audience.insights.forEach(i => L.push(`- ${i.age}: ${i.text}`)); L.push(`Gdzie ich spotkasz: ${r.audience.platforms.join(', ')}`); L.push('Wyzwania: ' + r.audience.challenges.join('; '));
+  h('2. Komunikacja i ton głosu'); L.push(`Ton: ${r.comms.tone.name} — ${r.comms.tone.desc}`); L.push(`Dopasowanie do celu: ${r.comms.adjust}`); r.comms.messages.forEach(x => L.push(`- ${x.angle}: ${x.text}`)); L.push('Filary treści: ' + r.comms.pillars.join('; ')); L.push('Rób: ' + r.comms.dos.join('; ')); L.push('Unikaj: ' + r.comms.donts.join('; ')); L.push('CTA: ' + r.comms.cta);
+  h('3. Dobór narzędzi'); r.channels.forEach(c => { L.push(`${c.label} (dopasowanie ${c.score}/10, ${c.share}% budżetu = ${fmtPln(c.amount)})`); L.push(`  Dlaczego: ${c.why}`); L.push(`  Cel kampanii: ${c.objective}`); L.push(`  Formaty: ${c.formats.join('; ')}`); L.push(`  Wskazówka: ${c.tip}`); });
+  if (r.suggested) L.push(`Rozważ dodatkowo: ${r.suggested.label} — ${r.suggested.why}`);
+  h('4. Budżet i lejek'); r.funnel.forEach(s => { L.push(`${s.label} (${s.title}): ${s.pct}% = ${fmtPln(s.amount)}`); L.push(`  ${s.desc}`); L.push(`  Taktyki: ${s.tactics.join('; ')}`); L.push(`  Mierz: ${s.kpi}`); }); L.push(r.funnelNote); L.push('KPI: ' + r.kpis.join('; ')); L.push(r.bench);
+  h('5. Analiza konkurencji'); r.competition.sources.forEach(s => { L.push(`${s.label} (${s.url})`); s.steps.forEach((st, i) => L.push(`  ${i + 1}. ${st}`)); }); L.push('Checklista: ' + r.competition.checklist.join('; ')); L.push('Hipotezy: ' + r.competition.hypotheses.join('; ')); if (r.competition.notes) L.push('Notatki: ' + r.competition.notes);
+  h('6. Plan 90 dni'); r.plan.forEach(p => { L.push(`${p.weeks} — ${p.title}`); p.items.forEach(i => L.push(`  - ${i}`)); }); L.push('Następne kroki:'); r.next.forEach((n, i) => L.push(`  ${i + 1}. ${n}`));
+  L.push(''); L.push('Rekomendacje wstępne, oparte na regułach; zweryfikuj je w danych.');
+  return L.join('\n');
+}
+
+/* =====================================================================
+   5. UI — formularz, walidacja, stany, eksport
+   ===================================================================== */
+
+const icons = () => { if (window.lucide) window.lucide.createIcons(); };
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const state = { form: null, report: null };
+const STORAGE_KEY = 'strategy-generator-form-v1';
+
+function readForm() {
+  const fd = new FormData($('#strategy-form'));
+  return {
+    name: (fd.get('name') || '').trim(),
+    industry: fd.get('industry') || '',
+    who: (fd.get('who') || '').trim(),
+    ages: fd.getAll('ages'),
+    interests: (fd.get('interests') || '').trim(),
+    challenges: (fd.get('challenges') || '').trim(),
+    goal: fd.get('goal') || '',
+    budget: fd.get('budget') || '',
+    budgetPln: Number(fd.get('budgetPln')) || 0,
+    channels: fd.getAll('channels'),
+    competition: (fd.get('competition') || '').trim(),
+  };
+}
+
+function writeForm(f) {
+  const form = $('#strategy-form');
+  form.name.value = f.name || ''; form.industry.value = f.industry || ''; form.who.value = f.who || '';
+  form.interests.value = f.interests || ''; form.challenges.value = f.challenges || ''; form.budget.value = f.budget || '';
+  form.budgetPln.value = f.budgetPln || ''; form.competition.value = f.competition || '';
+  $$('input[name="ages"]').forEach(i => i.checked = (f.ages || []).includes(i.value));
+  $$('input[name="channels"]').forEach(i => i.checked = (f.channels || []).includes(i.value));
+  $$('input[name="goal"]').forEach(i => i.checked = i.value === f.goal);
+}
+
+function validate(f) {
+  const errors = {};
+  if (!f.name) errors.name = true;
+  if (!f.industry) errors.industry = true;
+  if (!f.who) errors.who = true;
+  if (!f.ages.length) errors.ages = true;
+  if (!f.goal) errors.goal = true;
+  if (!f.budget) errors.budget = true;
+  if (!f.channels.length) errors.channels = true;
+  return errors;
+}
+
+function showErrors(errors) {
+  $$('.err').forEach(e => e.classList.toggle('hidden', !errors[e.dataset.for]));
+  ['name', 'industry', 'who', 'budget'].forEach(n => { const el = $('#strategy-form')[n]; if (el) el.classList.toggle('is-invalid', !!errors[n]); });
+  const first = $('.err:not(.hidden)');
+  if (first) first.closest('.card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setStep(n) {
+  $$('#stepper .step').forEach(li => {
+    const s = Number(li.dataset.step); const num = $('.num', li);
+    li.className = 'step flex items-center gap-2 px-3 py-1.5 rounded-full ' + (s === n ? 'bg-indigo-50 text-indigo-800 font-semibold' : s < n ? 'text-slate-600' : 'text-slate-400');
+    num.className = 'num h-6 w-6 grid place-items-center rounded-full text-xs font-bold ' + (s === n ? 'bg-indigo-600 text-white' : s < n ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500');
+    if (s < n) num.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>'; else num.textContent = s;
+  });
+  icons();
+}
+
+function toast(msg, icon = 'check') {
+  const t = $('#toast');
+  t.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>${esc(msg)}`;
+  icons();
+  t.classList.remove('opacity-0');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('opacity-0'), 2200);
+}
+
+function saveDraft() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(readForm())); } catch (_) {} }
+function loadDraft() { try { const s = localStorage.getItem(STORAGE_KEY); if (s) writeForm(JSON.parse(s)); } catch (_) {} }
+
+const LOADING_MSGS = ['Analizuję grupę docelową…', 'Dobieram ton komunikacji…', 'Oceniam dopasowanie kanałów…', 'Liczę podział budżetu w lejku…', 'Składam plan kampanii…'];
+
+function runGeneration(f) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $('#form-section').classList.add('hidden'); $('#hero').classList.add('hidden');
+  $('#report').classList.add('hidden'); $('#loading').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  const total = reduced ? 300 : 1600; let i = 0;
+  const bar = $('#loading-bar'), msg = $('#loading-msg');
+  const tick = setInterval(() => { i++; msg.textContent = LOADING_MSGS[Math.min(i, LOADING_MSGS.length - 1)]; bar.style.width = `${Math.min(95, 8 + i * 22)}%`; }, total / LOADING_MSGS.length);
+  setTimeout(() => {
+    clearInterval(tick); bar.style.width = '100%';
+    state.form = f; state.report = generate(f);
+    const rep = $('#report'); rep.innerHTML = renderReport(state.report);
+    $('#loading').classList.add('hidden'); rep.classList.remove('hidden');
+    icons(); setStep(2); bindReportActions();
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  }, total + 200);
+}
+
+function bindReportActions() {
+  $('#btn-edit').addEventListener('click', () => {
+    $('#report').classList.add('hidden'); $('#form-section').classList.remove('hidden'); $('#hero').classList.remove('hidden');
+    setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  $('#btn-print').addEventListener('click', () => { setStep(3); window.print(); });
+  $('#btn-copy').addEventListener('click', async () => {
+    const text = reportToText(state.report);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) { /* brak wsparcia */ } ta.remove();
+    }
+    setStep(3); toast('Podsumowanie skopiowane do schowka', 'clipboard-check');
+  });
+}
+
+const DEMO = {
+  name: 'Nexo Consulting', industry: 'b2b', who: 'właściciele i dyrektorzy firm produkcyjnych 50–250 pracowników', ages: ['35-44', '45-54'],
+  interests: 'automatyzacja produkcji, lean management, systemy ERP', challenges: 'rosnące koszty produkcji, brak danych do decyzji, rotacja pracowników',
+  goal: 'leads', budget: 'medium', budgetPln: 6000, channels: ['linkedin', 'google', 'meta'],
+  competition: 'https://www.facebook.com/ads/library/?q=konkurent\nKonkurent A promuje darmowy audyt produkcji w reklamach wideo z prezesem. Konkurent B stawia na comiesięczne webinary i raporty PDF.',
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  icons();
+  setStep(1);
+  loadDraft();
+
+  const form = $('#strategy-form');
+  form.addEventListener('input', saveDraft);
+  form.addEventListener('change', saveDraft);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const f = readForm();
+    const errors = validate(f);
+    showErrors(errors);
+    if (Object.keys(errors).length) { toast('Uzupełnij wymagane pola', 'alert-circle'); return; }
+    runGeneration(f);
+  });
+  $('#btn-demo').addEventListener('click', () => {
+    writeForm(DEMO); saveDraft(); showErrors({});
+    if (!$('#form-section').classList.contains('hidden')) toast('Wczytano przykładowe dane', 'sparkles');
+    else runGeneration(DEMO);
+  });
+  window.addEventListener('afterprint', () => setStep(2));
+});
+</script>
+</body>
+</html>

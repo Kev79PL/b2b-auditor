@@ -37,3 +37,15 @@ GEMINI_API_KEY=twoj_klucz python3 server.py
 ```
 
 Serwer działa na `http://localhost:5001`.
+
+## Generator Strategii Marketingowej — `strategia/index.html`
+
+Samodzielne narzędzie szkoleniowe (SPA w jednym pliku: HTML + Tailwind CSS z CDN + Vanilla JS).
+Uczestnik wpisuje dane o firmie, grupie docelowej, celu, budżecie i kanałach, a aplikacja
+generuje raport: profil grupy docelowej, ton komunikacji, dobór narzędzi reklamowych,
+podział budżetu w lejku, wskazówki do analizy konkurencji i plan 90 dni.
+
+- Działa bez backendu — wystarczy otworzyć `strategia/index.html` w przeglądarce (wymaga internetu do pobrania Tailwind, Lucide i fontów z CDN).
+- Rekomendacje są budowane z reguł (baza wiedzy w sekcji `BAZA WIEDZY` w pliku) — logikę dopasowania można edytować bez znajomości frameworków.
+- Eksport: „Drukuj / zapisz PDF” (`window.print()` ze stylami `@media print`) oraz „Kopiuj podsumowanie” (tekst do schowka).
+- Formularz zapisuje się lokalnie w `localStorage`; przycisk „Wczytaj przykład” wypełnia dane demonstracyjne.
