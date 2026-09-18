@@ -402,3 +402,124 @@ if __name__ == "__main__":
     print("Running on http://localhost:5001")
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)
+
+# ============= Apify Integration =============
+APIFY_API_KEY = os.getenv("APIFY_API_KEY", "")
+APIFY_BASE_URL = "https://api.apify.com/v2"
+
+def analyze_social_profile(platform, url):
+    """Analyze social media profile using Apify"""
+    if not APIFY_API_KEY:
+        return {"error": "Apify API key not configured"}
+    
+    # Map platform to Apify actor ID
+    actors = {
+        "facebook": "apify/facebook-posts-scraper",
+        "instagram": "apify/instagram-scraper", 
+        "tiktok": "apify/tiktok-scraper",
+        "linkedin": "apify/linkedin-posts-scraper"
+    }
+    
+    actor_id = actors.get(platform.lower())
+    if not actor_id:
+        return {"error": f"Unsupported platform: {platform}"}
+    
+    try:
+        # Run Apify actor
+        run_url = f"{APIFY_BASE_URL}/acts/{actor_id}/runs"
+        input_payload = {
+            "startUrls": [{"url": url}],
+            "maxPostsPerPage": 10,
+            "maxPages": 1
+        }
+        
+        resp = requests.post(
+            run_url,
+            json=input_payload,
+            headers={"Authorization": f"Bearer {APIFY_API_KEY}"},
+            timeout=30
+        )
+        resp.raise_for_status()
+        run_data = resp.json()
+        run_id = run_data.get("data", {}).get("id")
+        
+        if not run_id:
+            return {"error": "Failed to start Apify run"}
+        
+        # Wait for completion (max 30s)
+        for _ in range(30):
+            status_url = f"{APIFY_BASE_URL}/acts/{actor_id}/runs/{run_id}"
+            status_resp = requests.get(
+                status_url,
+                headers={"Authorization": f"Bearer {APIFY_API_KEY}"},
+                timeout=10
+            )
+            status_data = status_resp.json().get("data", {})
+            
+            if status_data.get("status") == "SUCCEEDED":
+                # Get dataset results
+                dataset_id = status_data.get("defaultDatasetId")
+                dataset_url = f"{APIFY_BASE_URL}/datasets/{dataset_id}/items"
+                items_resp = requests.get(
+                    dataset_url,
+                    headers={"Authorization": f"Bearer {APIFY_API_KEY}"},
+                    timeout=10
+                )
+                items = items_resp.json()
+                
+                # Summarize results
+                return {
+                    "platform": platform,
+                    "profile_url": url,
+                    "posts_count": len(items),
+                    "latest_posts": items[:3],
+                    "avg_engagement": sum(
+                        p.get("likes", 0) + p.get("comments", 0) + p.get("shares", 0) 
+                        for p in items[:10]
+                    ) / max(len(items[:10]), 1)
+                }
+            elif status_data.get("status") in ["FAILED", "ABORTED"]:
+                return {"error": f"Apify run failed: {status_data.get('status')}"}
+            
+            time.sleep(1)
+        
+        return {"error": "Apify run timeout"}
+    
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.route("/api/analyze-competitors", methods=["POST"])
+def analyze_competitors():
+    """Analyze competitor profiles via Apify"""
+    data = request.get_json() or {}
+    
+    competitors = {
+        "website": data.get("website"),
+        "facebook": data.get("facebook"),
+        "instagram": data.get("instagram"),
+        "tiktok": data.get("tiktok"),
+        "linkedin": data.get("linkedin")
+    }
+    
+    results = {}
+    
+    # Analyze website
+    if competitors.get("website"):
+        try:
+            results["website"] = {
+                "url": competitors["website"],
+                "status": "analyzed"
+            }
+        except:
+            results["website"] = {"error": "Could not analyze website"}
+    
+    # Analyze social profiles via Apify
+    for platform in ["facebook", "instagram", "tiktok", "linkedin"]:
+        if competitors.get(platform):
+            results[platform] = analyze_social_profile(
+                platform, 
+                competitors[platform]
+            )
+    
+    return jsonify(results)
+

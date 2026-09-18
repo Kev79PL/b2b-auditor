@@ -49,3 +49,32 @@ podział budżetu w lejku, wskazówki do analizy konkurencji i plan 90 dni.
 - Rekomendacje są budowane z reguł (baza wiedzy w sekcji `BAZA WIEDZY` w pliku) — logikę dopasowania można edytować bez znajomości frameworków.
 - Eksport: „Drukuj / zapisz PDF” (`window.print()` ze stylami `@media print`) oraz „Kopiuj podsumowanie” (tekst do schowka).
 - Formularz zapisuje się lokalnie w `localStorage`; przycisk „Wczytaj przykład” wypełnia dane demonstracyjne.
+
+### Integracja Apify — analiza konkurencji
+
+Generator może analizować profile konkurentów na:
+- Facebook, Instagram, TikTok, LinkedIn (automatyczne scraping przez Apify)
+- Strona www (pobieranie metadanych)
+
+**Konfiguracja:**
+
+Ustaw zmienną środowiskową na Render:
+```
+APIFY_API_KEY=your_api_key_here
+```
+
+**Użycie:**
+
+1. W formularzu „Konkurencja" wklej URL-e profili konkurentów
+2. Po wygenerowaniu strategii, narzędzie automatycznie wyśle zapytanie do Apify
+3. Wyniki pojawią się w sekcji „5. Analiza konkurencji" oraz jako toast potwierdzenia
+
+**Dane analityczne:**
+
+- liczba ostatnich postów
+- średni engagement (likes + comments + shares)
+- próbka ostatnich 3 postów
+- link do profilu
+
+Analiza przebiega asynchronicznie (nie blokuje generowania raportu).
+

@@ -681,6 +681,12 @@ function detectLinks(text) {
     else if (l.includes('youtube.com') || l.includes('youtu.be')) found.add('youtube');
     else found.add('site');
   });
+
+  // Analyze competitors via Apify (async, background)
+  if (f.competitor_website || f.competitor_facebook || f.competitor_instagram || f.competitor_tiktok || f.competitor_linkedin) {
+    analyzeCompetitorsAsync(f);
+  }
+
   return { urls, found };
 }
 
@@ -1013,6 +1019,11 @@ function readForm() {
     budgetPln: Number(fd.get('budgetPln')) || 0,
     channels: fd.getAll('channels'),
     competition: (fd.get('competition') || '').trim(),
+    competitor_website: (fd.get('competitor_website') || '').trim(),
+    competitor_facebook: (fd.get('competitor_facebook') || '').trim(),
+    competitor_instagram: (fd.get('competitor_instagram') || '').trim(),
+    competitor_tiktok: (fd.get('competitor_tiktok') || '').trim(),
+    competitor_linkedin: (fd.get('competitor_linkedin') || '').trim(),
   };
 }
 
@@ -1021,6 +1032,9 @@ function writeForm(f) {
   form.name.value = f.name || ''; form.industry.value = f.industry || ''; form.who.value = f.who || '';
   form.interests.value = f.interests || ''; form.challenges.value = f.challenges || ''; form.budget.value = f.budget || '';
   form.budgetPln.value = f.budgetPln || ''; form.competition.value = f.competition || '';
+  form.competitor_website.value = f.competitor_website || ''; form.competitor_facebook.value = f.competitor_facebook || '';
+  form.competitor_instagram.value = f.competitor_instagram || ''; form.competitor_tiktok.value = f.competitor_tiktok || '';
+  form.competitor_linkedin.value = f.competitor_linkedin || '';
   $$('input[name="ages"]').forEach(i => i.checked = (f.ages || []).includes(i.value));
   $$('input[name="channels"]').forEach(i => i.checked = (f.channels || []).includes(i.value));
   $$('input[name="goal"]').forEach(i => i.checked = i.value === f.goal);
@@ -1110,6 +1124,38 @@ const DEMO = {
   goal: 'leads', budget: 'medium', budgetPln: 6000, channels: ['linkedin', 'google', 'meta'],
   competition: 'https://www.facebook.com/ads/library/?q=konkurent\nKonkurent A promuje darmowy audyt produkcji w reklamach wideo z prezesem. Konkurent B stawia na comiesięczne webinary i raporty PDF.',
 };
+
+
+/* ===== Apify Competitor Analysis ===== */
+function analyzeCompetitorsAsync(f) {
+  if (!('competitor_website' in f)) return;
+  
+  const payload = {
+    website: f.competitor_website,
+    facebook: f.competitor_facebook,
+    instagram: f.competitor_instagram,
+    tiktok: f.competitor_tiktok,
+    linkedin: f.competitor_linkedin,
+  };
+  
+  const hasProfiles = Object.values(payload).some(v => v);
+  if (!hasProfiles) return;
+  
+  // Send to backend (don't block report generation)
+  fetch('/api/analyze-competitors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(results => {
+    console.log('Competitor analysis:', results);
+    // Store in state for potential future use
+    if (state.report) state.report.competitorData = results;
+    toast('Analiza konkurentów zakończona', 'check-circle');
+  })
+  .catch(e => console.log('Competitor analysis error:', e));
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   icons();
